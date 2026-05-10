@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | crIArc Consultoria Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/styles.css">
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/consultoria/css/app.css">
 </head>
-<body class="auth-body">
+<body class="auth-body" style="opacity: 0; transition: opacity 0.3s ease;">
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
@@ -35,7 +35,7 @@
 
     <!-- Supabase SDK & Cliente -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/supabaseClient.js"></script>
+    <script src="/assets/js/supabaseClient.js"></script>
 
     <script>
         async function handleGoogleLogin() {
@@ -62,6 +62,8 @@
             const { data } = await window.supabaseClient.auth.getSession();
             if (data.session) {
                 window.location.href = '/consultoria/dashboard.html';
+            } else {
+                document.body.style.opacity = '1';
             }
         };
     </script>
