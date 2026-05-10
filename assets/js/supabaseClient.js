@@ -6,7 +6,7 @@
 // ============================================================================
 
 const SUPABASE_URL = 'https://dvvjcewohzbtgtotlbbv.supabase.co';
-const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI'; // FALTANDO: Pegue em Settings > API
+const SUPABASE_ANON_KEY = 'sb_publishable_r4QQOZU3uyKdKw9sZxQ9UQ_2R0JFmdo';
 
 // Inicializa o cliente do Supabase
 // (A biblioteca global 'supabase' deve ser carregada antes deste arquivo via CDN)
