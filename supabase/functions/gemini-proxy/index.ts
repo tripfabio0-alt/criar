@@ -36,8 +36,8 @@ serve(async (req: Request) => {
 
     if (!response.ok) {
       return new Response(
-        JSON.stringify(data),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: true, message: `Erro Google API: ${data.error?.message || response.statusText}` }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -48,8 +48,8 @@ serve(async (req: Request) => {
 
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: true, message: `Erro interno Edge Function: ${error.message}` }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
