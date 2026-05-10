@@ -26,13 +26,16 @@
             </ul>
         </nav>
         <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="avatar">US</div>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <img src="" alt="Avatar" id="userAvatar" style="width:36px; height:36px; border-radius:50%; margin-right:10px;">
                 <div class="user-info">
-                    <span class="user-name">Usuário</span>
+                    <span class="user-name" id="userName">Usuário</span>
                     <span class="user-role">Admin</span>
                 </div>
             </div>
+            <button onclick="handleLogout()" style="margin-top: 15px; width: 100%; padding: 8px; background: transparent; border: 1px solid #ff4444; color: #ff4444; border-radius: 4px; cursor: pointer; transition: 0.2s;">
+                Sair / Logout
+            </button>
         </div>
     </aside>
 
@@ -113,5 +116,44 @@
             </div>
         </div>
     </main>
+
+    <!-- Supabase SDK & Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabaseClient.js"></script>
+
+    <script>
+        window.onload = async () => {
+            // Verificar se o usuário está logado
+            const { data, error } = await window.supabaseClient.auth.getSession();
+            
+            if (error || !data.session) {
+                // Se não estiver logado, chuta de volta pra tela de login
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Popula os dados do usuário na interface
+            const user = data.session.user;
+            const profileDiv = document.getElementById('userProfile');
+            const avatarImg = document.getElementById('userAvatar');
+            const nameSpan = document.getElementById('userName');
+
+            if (user.user_metadata) {
+                if (user.user_metadata.avatar_url) {
+                    avatarImg.src = user.user_metadata.avatar_url;
+                }
+                if (user.user_metadata.full_name) {
+                    nameSpan.textContent = user.user_metadata.full_name;
+                }
+            }
+            
+            profileDiv.style.display = 'flex';
+        };
+
+        async function handleLogout() {
+            await window.supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
 </html>
