@@ -30,22 +30,24 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 6
 .btn-outline:hover{border-color:#fff;transform:translateY(-2px)}
 
 /* HERO VISUAL */
-.hero-visual{position:relative;width:480px;height:420px;flex-shrink:0}
-.cube-wrap{perspective:900px;width:200px;height:200px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
-.cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;animation:spin 14s infinite linear}
-.face{position:absolute;width:200px;height:200px;background:linear-gradient(135deg,rgba(0,191,255,.15),rgba(138,77,255,.2));border:1.5px solid rgba(0,191,255,.25);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-size:72px;font-weight:800;color:rgba(255,255,255,.9)}
-.f-fr{transform:translateZ(100px)}.f-bk{transform:rotateY(180deg) translateZ(100px)}.f-ri{transform:rotateY(90deg) translateZ(100px)}.f-le{transform:rotateY(-90deg) translateZ(100px)}.f-tp{transform:rotateX(90deg) translateZ(100px)}.f-bt{transform:rotateX(-90deg) translateZ(100px)}
-@keyframes spin{0%{transform:rotateX(-15deg) rotateY(0)}100%{transform:rotateX(-15deg) rotateY(360deg)}}
+.hero-visual{position:relative;width:480px;height:420px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.hero-glowing-cube {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 35px rgba(0, 191, 255, 0.25));
+  animation: subtleFloat 6s ease-in-out infinite;
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+.hero-glowing-cube:hover {
+  filter: drop-shadow(0 0 50px rgba(138, 77, 255, 0.4));
+  transform: scale(1.03);
+}
 
-/* FLOATING METRICS */
-.fl-card{position:absolute;background:rgba(15,23,42,.75);backdrop-filter:blur(10px);border:1px solid var(--border);padding:14px 18px;border-radius:10px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:floaty 4s ease-in-out infinite}
-.fl-card.c1{top:10px;left:20px;animation-delay:0s}
-.fl-card.c2{bottom:60px;left:0;animation-delay:1.2s}
-.fl-card.c3{top:30px;right:10px;animation-delay:.6s}
-.fl-label{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-.fl-val{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700}
-.fl-val .green{color:#10b981;font-size:12px;margin-left:4px}
-@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
 
 /* TRUST BAR */
 .trust{text-align:center;padding:20px 60px 50px}
