@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import logo from "@/assets/logo.png";
 import glowingCube from "@/assets/glowing-cube.png";
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/")({
 export function Index() {
   const [lang, setLang] = useState<Lang>("pt");
   const [animate, setAnimate] = useState(false);
+  const [solutionsOpen, setSolutionsOpen] = useState(false);
   const t = dict[lang];
 
   useEffect(() => {
@@ -49,9 +50,64 @@ export function Index() {
           <img src={logo} alt="Solvix" className="h-[88px] w-[88px] object-contain" />
         </a>
         <nav className="hidden items-center gap-7 text-sm text-muted-foreground lg:flex">
-          {t.nav.map((n) => (
-            <a key={n} href="#" className="transition-colors hover:text-foreground">{n}</a>
-          ))}
+          {t.nav.map((n) => {
+            if (n === "Soluções" || n === "Solutions") {
+              return (
+                <div 
+                  key={n} 
+                  className="relative group py-2"
+                  onMouseEnter={() => setSolutionsOpen(true)}
+                  onMouseLeave={() => setSolutionsOpen(false)}
+                >
+                  <button className="flex items-center gap-1.5 transition-colors hover:text-foreground cursor-pointer">
+                    <span>{n}</span>
+                    <span className="text-[9px] transition-transform group-hover:rotate-180">▼</span>
+                  </button>
+                  
+                  {/* Glassmorphic Dropdown */}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-64 rounded-xl border border-border/40 bg-background/95 backdrop-blur-md p-3 shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                    <div className="space-y-1">
+                      <Link 
+                        to="/app/dashboard"
+                        className="flex flex-col gap-0.5 rounded-lg p-2.5 hover:bg-secondary/40 transition-all text-left block"
+                      >
+                        <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <span>📊</span>
+                          <span>Painel de Controle</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">Métricas e acompanhamento geral de negócios</div>
+                      </Link>
+
+                      <Link 
+                        to="/app/consultoria/senior/eraser"
+                        className="flex flex-col gap-0.5 rounded-lg p-2.5 hover:bg-secondary/40 transition-all text-left block"
+                      >
+                        <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <span>🏢</span>
+                          <span>Área do Cliente (Eraser)</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">Workspace integrado, projetos e chamados</div>
+                      </Link>
+
+                      <Link 
+                        to="/app/consultoria/senior/eraser/ferramentas/lsp"
+                        className="flex flex-col gap-0.5 rounded-lg p-2.5 hover:bg-secondary/40 transition-all text-left block"
+                      >
+                        <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <span>🤖</span>
+                          <span>Gerador de Regras LSP</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">Criação automatizada de lógica de processo Senior</div>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <a key={n} href="#" className="transition-colors hover:text-foreground">{n}</a>
+            );
+          })}
         </nav>
         <LangSwitcher lang={lang} onChange={setLang} />
       </header>
@@ -66,14 +122,20 @@ export function Index() {
             </h1>
             <p className="mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">{t.heroDesc}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <button className="group inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]">
+              <Link 
+                to="/app/consultoria/senior/eraser/ferramentas/lsp"
+                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
+              >
                 {t.ctaPrimary}
                 <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/40 px-6 py-3.5 text-sm font-medium text-foreground backdrop-blur transition-colors hover:bg-secondary">
+              </Link>
+              <Link 
+                to="/app/dashboard"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/40 px-6 py-3.5 text-sm font-medium text-foreground backdrop-blur transition-colors hover:bg-secondary"
+              >
                 {t.ctaSecondary}
                 <IconArrow className="h-4 w-4" />
-              </button>
+              </Link>
             </div>
             <p className="mt-10 text-xs uppercase tracking-wider text-muted-foreground">{t.trusted}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm text-muted-foreground/70">
@@ -150,12 +212,22 @@ export function Index() {
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {t.what.map((card, i) => {
             const Icon = whatIcons[i];
+            
+            // Map each card to its premium dashboard or workspace route
+            let toPath = "/app/dashboard";
+            if (i === 1) toPath = "/app/consultoria/senior/eraser";
+            if (i === 2) toPath = "/app/consultoria/senior/eraser/ferramentas/lsp";
+
             return (
-              <div key={i} className="glass-card rounded-2xl p-5 text-center transition-transform hover:-translate-y-1">
+              <Link 
+                key={i} 
+                to={toPath} 
+                className="glass-card rounded-2xl p-5 text-center transition-transform hover:-translate-y-1 block hover:border-amber-500/20 cursor-pointer"
+              >
                 <Icon className="mx-auto h-9 w-9 text-accent" />
                 <h3 className="mt-4 text-sm font-semibold">{card.t}</h3>
                 <p className="mt-2 text-xs text-muted-foreground">{card.d}</p>
-              </div>
+              </Link>
             );
           })}
         </div>
