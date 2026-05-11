@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConsultoriaSeniorClienteRouteImport } from './routes/app.consultoria.senior.$cliente'
+import { Route as AppConsultoriaSeniorClienteIndexRouteImport } from './routes/app.consultoria.senior.$cliente.index'
 import { Route as AppConsultoriaSeniorClienteFerramentasLspRouteImport } from './routes/app.consultoria.senior.$cliente.ferramentas.lsp'
 
 const AppRoute = AppRouteImport.update({
@@ -36,6 +37,12 @@ const AppConsultoriaSeniorClienteRoute =
     path: '/consultoria/senior/$cliente',
     getParentRoute: () => AppRoute,
   } as any)
+const AppConsultoriaSeniorClienteIndexRoute =
+  AppConsultoriaSeniorClienteIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppConsultoriaSeniorClienteRoute,
+  } as any)
 const AppConsultoriaSeniorClienteFerramentasLspRoute =
   AppConsultoriaSeniorClienteFerramentasLspRouteImport.update({
     id: '/ferramentas/lsp',
@@ -48,13 +55,14 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteRouteWithChildren
+  '/app/consultoria/senior/$cliente/': typeof AppConsultoriaSeniorClienteIndexRoute
   '/app/consultoria/senior/$cliente/ferramentas/lsp': typeof AppConsultoriaSeniorClienteFerramentasLspRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
-  '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteRouteWithChildren
+  '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteIndexRoute
   '/app/consultoria/senior/$cliente/ferramentas/lsp': typeof AppConsultoriaSeniorClienteFerramentasLspRoute
 }
 export interface FileRoutesById {
@@ -63,6 +71,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteRouteWithChildren
+  '/app/consultoria/senior/$cliente/': typeof AppConsultoriaSeniorClienteIndexRoute
   '/app/consultoria/senior/$cliente/ferramentas/lsp': typeof AppConsultoriaSeniorClienteFerramentasLspRoute
 }
 export interface FileRouteTypes {
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/dashboard'
     | '/app/consultoria/senior/$cliente'
+    | '/app/consultoria/senior/$cliente/'
     | '/app/consultoria/senior/$cliente/ferramentas/lsp'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/dashboard'
     | '/app/consultoria/senior/$cliente'
+    | '/app/consultoria/senior/$cliente/'
     | '/app/consultoria/senior/$cliente/ferramentas/lsp'
   fileRoutesById: FileRoutesById
 }
@@ -124,6 +135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConsultoriaSeniorClienteRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/consultoria/senior/$cliente/': {
+      id: '/app/consultoria/senior/$cliente/'
+      path: '/'
+      fullPath: '/app/consultoria/senior/$cliente/'
+      preLoaderRoute: typeof AppConsultoriaSeniorClienteIndexRouteImport
+      parentRoute: typeof AppConsultoriaSeniorClienteRoute
+    }
     '/app/consultoria/senior/$cliente/ferramentas/lsp': {
       id: '/app/consultoria/senior/$cliente/ferramentas/lsp'
       path: '/ferramentas/lsp'
@@ -135,11 +153,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppConsultoriaSeniorClienteRouteChildren {
+  AppConsultoriaSeniorClienteIndexRoute: typeof AppConsultoriaSeniorClienteIndexRoute
   AppConsultoriaSeniorClienteFerramentasLspRoute: typeof AppConsultoriaSeniorClienteFerramentasLspRoute
 }
 
 const AppConsultoriaSeniorClienteRouteChildren: AppConsultoriaSeniorClienteRouteChildren =
   {
+    AppConsultoriaSeniorClienteIndexRoute:
+      AppConsultoriaSeniorClienteIndexRoute,
     AppConsultoriaSeniorClienteFerramentasLspRoute:
       AppConsultoriaSeniorClienteFerramentasLspRoute,
   }

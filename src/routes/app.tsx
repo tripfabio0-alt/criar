@@ -41,21 +41,13 @@ function AppLayout() {
 
         <div className="glass-card w-full max-w-md rounded-3xl border border-border/40 bg-card/20 p-8 text-center backdrop-blur-2xl shadow-[0_0_50px_rgba(99,102,241,0.15)] transition-all duration-500">
           
-          {/* Logo & Platform Name */}
-          <div className="flex flex-col items-center gap-4 mb-8">
+          {/* Logo */}
+          <div className="flex flex-col items-center justify-center mb-8">
             <img 
               src={logo} 
               alt="Solvix" 
-              className="h-20 w-20 object-contain drop-shadow-[0_0_20px_rgba(99,102,241,0.3)]" 
+              className="h-44 w-44 object-contain drop-shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-transform duration-500 hover:scale-105" 
             />
-            <div>
-              <span className="font-outfit text-4xl font-black tracking-[0.2em] bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
-                crIAr
-              </span>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground/60 mt-1 font-semibold">
-                AI Solutions Studio
-              </p>
-            </div>
           </div>
 
           {isLoading ? (

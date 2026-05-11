@@ -43,15 +43,12 @@ export const Sidebar: React.FC = () => {
       
       {/* Brand Header */}
       <div className="flex flex-col items-center justify-center border-b border-border/40 p-6">
-        <Link to="/" className="group flex flex-col items-center gap-2.5">
+        <Link to="/" className="group flex flex-col items-center gap-1">
           <img 
             src={logo} 
-            alt="crIAr logo" 
-            className="h-[88px] w-[88px] object-contain transition-transform duration-500 group-hover:scale-110" 
+            alt="Solvix logo" 
+            className="h-[170px] w-[170px] object-contain transition-transform duration-500 group-hover:scale-105" 
           />
-          <span className="font-outfit text-3xl font-black tracking-[0.25em] bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent hover:brightness-110 transition-all">
-            crIAr
-          </span>
         </Link>
       </div>
 
