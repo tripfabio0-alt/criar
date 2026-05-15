@@ -209,9 +209,9 @@ function LspGeneratorRoute() {
       <div className="grid gap-8 md:grid-cols-12">
         
         {/* Left Input Configuration Column */}
-        <div className="md:col-span-5 space-y-6">
-          <div className="rounded-xl border border-border/40 bg-card/50 p-6 space-y-4">
-            <h3 className="text-sm font-bold text-foreground">Definição do Requisito</h3>
+        <div className="md:col-span-5 space-y-4">
+          <div className="rounded-lg border border-slate-800 bg-[#111118] p-5 space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Definição do Requisito</h3>
             
             {/* File drag zone */}
             {mode === 'image' && (
@@ -224,42 +224,41 @@ function LspGeneratorRoute() {
                   if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
                 }}
                 onClick={() => !image && fileRef.current?.click()}
-                className={`group flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  dragOver ? 'border-amber-500 bg-amber-500/[0.02]' : 'border-border/60 hover:border-amber-500/50 bg-secondary/5'
+                className={`group flex flex-col items-center justify-center border border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                  dragOver ? 'border-amber-500 bg-amber-500/5' : 'border-slate-800 hover:border-amber-500/50 bg-slate-900/50'
                 }`}
               >
                 {image ? (
                   <div className="relative w-full">
-                    <img src={image.preview} alt="Upload" className="max-h-40 mx-auto rounded-lg object-contain bg-black" />
+                    <img src={image.preview} alt="Upload" className="max-h-32 mx-auto rounded object-contain" />
                     <button
                       onClick={(e) => { e.stopPropagation(); setImage(null); }}
-                      className="absolute top-2 right-2 flex items-center gap-1 rounded bg-rose-950/80 border border-rose-500/30 px-2 py-1 text-[10px] text-rose-300 font-bold hover:bg-rose-900"
+                      className="absolute top-1 right-1 flex items-center gap-1 rounded bg-slate-950 border border-slate-800 px-2 py-1 text-[9px] text-slate-400 font-bold hover:text-white"
                     >
                       <Trash className="h-3 w-3" />
                       <span>Remover</span>
                     </button>
-                    <p className="text-[10px] text-muted-foreground mt-3">{image.name} ({image.size})</p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary/30 text-muted-foreground group-hover:scale-110 transition-all">
-                      <Upload className="h-5 w-5" />
+                  <div className="space-y-1">
+                    <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-500">
+                      <Plus className="h-4 w-4" />
                     </div>
-                    <p className="text-xs font-bold">Arraste a captura de tela aqui</p>
-                    <p className="text-[10px] text-muted-foreground">PNG, JPG, JPEG até 5MB</p>
+                    <p className="text-[10px] text-slate-500">Arraste um print da tela ou clique aqui</p>
                   </div>
                 )}
               </div>
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Descrição da Lógica do Negócio</label>
-              <LspInput 
-                value={input} 
-                onChange={setInput} 
-                onGenerate={generate} 
-                mode={mode}
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Descrição da Lógica do Negócio</label>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate(); }}
+                placeholder={mode === 'image' ? "Ex: Analise este print e descreva o que deseja validar..." : "Ex: Quero bloquear o pedido de venda se o cliente estiver inadimplente..."}
+                className="w-full h-32 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300 outline-none focus:border-amber-500/50 resize-none"
               />
             </div>
 
