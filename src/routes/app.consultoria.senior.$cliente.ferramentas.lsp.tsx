@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 
-export default function LspGeneratorRoute() {
+export const Route = createFileRoute('/app/consultoria/senior/$cliente/ferramentas/lsp')({
+  component: LspGeneratorRoute,
+});
+
+function LspGeneratorRoute() {
   const { cliente } = useParams({ from: '/app/consultoria/senior/$cliente/ferramentas/lsp' });
   const [text, setText] = useState('');
 
