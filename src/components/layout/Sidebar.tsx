@@ -14,7 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+export const Sidebar = React.memo(() => {
   const { 
     segmentos, 
     ferramentas, 
@@ -39,7 +39,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="fixed bottom-0 top-0 left-0 z-30 flex h-full w-[280px] flex-col border-r border-border/40 bg-card/10 backdrop-blur-xl transition-all duration-300">
+    <aside className="fixed bottom-0 top-0 left-0 z-30 flex h-full w-[280px] flex-col border-r border-border/40 bg-card transition-all duration-300">
       
       {/* Brand Header */}
       <div className="flex flex-col items-center justify-center border-b border-border/40 p-6">
@@ -153,5 +153,5 @@ export const Sidebar: React.FC = () => {
       </div>
     </aside>
   );
-};
+});
 export default Sidebar;
