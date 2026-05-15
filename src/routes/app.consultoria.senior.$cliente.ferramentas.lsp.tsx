@@ -138,19 +138,16 @@ function LspGeneratorRoute() {
     if (!input.trim() && !image) return;
     setLoading(true);
     setError('');
-    setResult(null);
-
-    // AI Generation simulation
-    setTimeout(() => {
-      try {
-        setResult(parseResponse(MOCK_RESPONSE));
-        setTab('script');
-      } catch (err: any) {
-        setError(err.message || 'Erro ao processar a regra LSP.');
-      } finally {
-        setLoading(false);
-      }
-    }, 1500);
+    
+    // Instant response to avoid state lock during delay
+    try {
+      setResult(parseResponse(MOCK_RESPONSE));
+      setTab('script');
+    } catch (err: any) {
+      setError('Erro ao processar a regra LSP.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const copyCode = () => {
