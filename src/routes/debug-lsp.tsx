@@ -64,7 +64,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 function DebugLspPage() {
-  const [input,setInput]=useState("");
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [image,setImage]=useState<any>(null);
   const [loading,setLoading]=useState(false);
   const [result,setResult]=useState<any>(null);
@@ -83,15 +83,16 @@ function DebugLspPage() {
   };
 
   const generate=async()=>{
-    if(!input.trim()&&!image)return;
+    const currentInput = inputRef.current?.value || "";
+    if(!currentInput.trim()&&!image)return;
     setLoading(true);setError("");setResult(null);
     try{
       let messages;
       if(mode==="image"&&image){
-        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:input.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
+        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:currentInput.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
         messages=[{role:"user",content}];
       }else{
-        messages=[{role:"user",content:input.trim()}];
+        messages=[{role:"user",content:currentInput.trim()}];
       }
       const res=await fetch("https://api.anthropic.com/v1/messages",{
         method:"POST",
@@ -110,7 +111,13 @@ function DebugLspPage() {
 
   const copy=()=>{if(!result?.script)return;navigator.clipboard.writeText(result.script);setCopied(true);setTimeout(()=>setCopied(false),2000);};
   const lc=(line: string)=>{const t=line.trim();if(t.startsWith("@"))return"#64748b";if(/^(Definir|Se|FimSe|Enquanto|FimEnquanto|ParaCada|FimParaCada)\b/i.test(t))return"#93c5fd";if(/^[A-Z][a-zA-Z]+\(/.test(t))return"#86efac";return"#cbd5e1";};
-  const ok=(input.trim()||image)&&!loading;
+  const ok=!loading;
+
+  const setExample = (ex: string) => {
+    if (inputRef.current) {
+      inputRef.current.value = ex;
+    }
+  };
 
   return(
     <div style={{minHeight:"100vh",background:"#0f1117",fontFamily:"'Courier New',monospace",color:"#e2e8f0"}}>
@@ -173,8 +180,7 @@ function DebugLspPage() {
           <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>e.target.files?.[0] && handleFile(e.target.files[0])}/>
 
           <textarea
-            value={input}
-            onChange={e=>setInput(e.target.value)}
+            ref={inputRef}
             onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();}}
             spellCheck={false}
             placeholder={mode==="image"?"Ex: Quero validar o campo Qtde antes de salvar, bloqueando se for zero...":"Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."}
@@ -185,7 +191,7 @@ function DebugLspPage() {
             {mode==="text"&&(
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {["Validar operador ao apontar OP","Bloquear pedido sem estoque","Log de alteração de quantidade"].map(ex=>(
-                  <button key={ex} onClick={()=>setInput(ex)} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"4px 10px",color:"#475569",fontSize:10,fontFamily:"inherit",cursor:"pointer"}}>{ex}</button>
+                  <button key={ex} onClick={()=>setExample(ex)} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"4px 10px",color:"#475569",fontSize:10,fontFamily:"inherit",cursor:"pointer"}}>{ex}</button>
                 ))}
               </div>
             )}
