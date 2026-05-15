@@ -260,16 +260,11 @@ function LspGeneratorRoute() {
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Descrição da Lógica do Negócio</label>
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate(); }}
-                placeholder={
-                  mode === 'image' 
-                    ? 'Ex: Quero validar se a quantidade de faturamento na tela é maior que zero...' 
-                    : 'Ex: Quero bloquear o pedido de venda se o cliente estiver inadimplente...'
-                }
-                className="w-full h-32 rounded-lg border border-border/40 bg-secondary/10 px-4 py-3 text-xs text-foreground outline-none focus:border-amber-500/40 focus:bg-secondary/20 resize-none leading-relaxed"
+              <LspInput 
+                value={input} 
+                onChange={setInput} 
+                onGenerate={generate} 
+                mode={mode}
               />
             </div>
 
@@ -319,158 +314,8 @@ function LspGeneratorRoute() {
           </div>
         </div>
 
-        {/* Right Output Block Column */}
         <div className="md:col-span-7">
-          {result ? (
-            <div className="space-y-6">
-              
-              {/* Header Info Banner */}
-              <div className="grid grid-cols-2 gap-4 rounded-xl border border-border/40 bg-card/50 p-5">
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Título da Regra</span>
-                  <span className="text-xs font-bold text-foreground">{result.titulo}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Módulo</span>
-                  <span className="text-xs font-bold text-amber-400">{result.modulo}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Identificador</span>
-                  <span className="text-xs font-semibold text-slate-400 font-mono">{result.identificador}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Descrição</span>
-                  <span className="text-xs text-slate-400 line-clamp-1">{result.descricao}</span>
-                </div>
-              </div>
- 
-              {/* Tabs Output Selector */}
-              <div className="rounded-xl border border-border/40 bg-[#0f111a]/95 overflow-hidden">
-                <div className="flex border-b border-border/30 bg-card/10 px-4 gap-1">
-                  {[
-                    { id: 'script', label: '📄 SCRIPT LSP' },
-                    { id: 'variaveis', label: '🔤 VARIÁVEIS' },
-                    { id: 'funcoes', label: '⚙️ FUNÇÕES' },
-                    { id: 'ajuda', label: '💡 RECOMENDAÇÕES' },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setTab(t.id as any)}
-                      className={`px-4 py-3 text-xs font-bold transition-all border-b-2 ${
-                        tab === t.id
-                          ? 'border-amber-500 text-amber-500'
-                          : 'border-transparent text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Script Display */}
-                {tab === 'script' && (
-                  <div className="relative p-6 font-mono text-xs overflow-x-auto max-h-[400px]">
-                    <button
-                      onClick={copyCode}
-                      className={`absolute top-4 right-4 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold transition-all ${
-                        copied 
-                          ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-400' 
-                          : 'bg-secondary/40 border-border/40 text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      <span>{copied ? 'Copiado!' : 'Copiar'}</span>
-                    </button>
-
-                    <pre className="space-y-1.5 pr-20">
-                      {result.script.split('\n').map((line: string, i: number) => (
-                        <div key={i} className="flex items-start">
-                          <span className="text-[10px] text-slate-600 select-none w-8 mr-4 text-right">{i + 1}</span>
-                          <span className={getLineColor(line)}>{line}</span>
-                        </div>
-                      ))}
-                    </pre>
-                  </div>
-                )}
-
-                {/* Variables Display */}
-                {tab === 'variaveis' && (
-                  <div className="p-6">
-                    <table className="w-full text-xs text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-border/40 text-muted-foreground">
-                          <th className="py-2.5 font-bold uppercase tracking-wider">Variável</th>
-                          <th className="py-2.5 font-bold uppercase tracking-wider text-center">Tipo</th>
-                          <th className="py-2.5 font-bold uppercase tracking-wider">Descrição</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {result.variaveis.map((v: any, i: number) => (
-                          <tr key={i} className="border-b border-border/20 font-medium">
-                            <td className="py-3 text-emerald-400 font-mono font-bold">{v.nome}</td>
-                            <td className="py-3 text-center">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                v.tipo === 'Alfa' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'
-                              }`}>
-                                {v.tipo}
-                              </span>
-                            </td>
-                            <td className="py-3 text-muted-foreground">{v.descricao}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Functions Display */}
-                {tab === 'funcoes' && (
-                  <div className="p-6 space-y-4">
-                    {result.funcoes.map((f: any, i: number) => (
-                      <div key={i} className="flex gap-4 p-4 rounded-xl border border-border/40 bg-secondary/10">
-                        <span className="text-amber-500 font-bold font-mono text-xs">{f.nome}()</span>
-                        <p className="text-muted-foreground text-xs leading-relaxed">{f.descricao}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Recommendations Display */}
-                {tab === 'ajuda' && (
-                  <div className="p-6 space-y-6">
-                    {result.atencao && (
-                      <div className="flex gap-3 p-4 rounded-xl border border-rose-500/20 bg-rose-500/[0.02]">
-                        <AlertTriangle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wide block mb-1">Ponto de Atenção</span>
-                          <p className="text-xs text-rose-300/90 leading-relaxed">{result.atencao}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-3">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block">Dicas de Homologação</span>
-                      {result.dicas.map((d: string, i: number) => (
-                        <div key={i} className="flex gap-3 p-3 rounded-xl border border-border/30 bg-secondary/5 text-xs text-muted-foreground leading-relaxed">
-                          <span className="text-amber-500 font-bold">{i + 1}.</span>
-                          <p>{d}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center border border-dashed border-border/40 rounded-xl h-[450px] p-6 text-center backdrop-blur-md">
-              <Terminal className="h-10 w-10 text-muted-foreground/30 mb-4" />
-              <h4 className="font-bold text-foreground mb-1">Aguardando Parâmetros</h4>
-              <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
-                Insira as diretrizes do negócio ou faça o upload de uma imagem no painel lateral e clique em <strong className="text-amber-500">Gerar Código</strong>.
-              </p>
-            </div>
-          )}
+          <LspResult result={result} tab={tab} setTab={setTab} copyCode={copyCode} copied={copied} getLineColor={getLineColor} />
         </div>
 
       </div>
@@ -478,4 +323,175 @@ function LspGeneratorRoute() {
     </div>
   );
 }
+const LspInput = React.memo(({ value, onChange, onGenerate, mode }: any) => {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) onGenerate(); }}
+      placeholder={
+        mode === 'image' 
+          ? 'Ex: Quero validar se a quantidade de faturamento na tela é maior que zero...' 
+          : 'Ex: Quero bloquear o pedido de venda se o cliente estiver inadimplente...'
+      }
+      className="w-full h-32 rounded-lg border border-border/40 bg-secondary/10 px-4 py-3 text-xs text-foreground outline-none focus:border-amber-500/40 focus:bg-secondary/20 resize-none leading-relaxed"
+    />
+  );
+});
+
+const LspResult = React.memo(({ result, tab, setTab, copyCode, copied, getLineColor }: any) => {
+  if (!result) {
+    return (
+      <div className="flex flex-col items-center justify-center border border-dashed border-border/40 rounded-xl h-[450px] p-6 text-center backdrop-blur-md">
+        <Terminal className="h-10 w-10 text-muted-foreground/30 mb-4" />
+        <h4 className="font-bold text-foreground mb-1">Aguardando Parâmetros</h4>
+        <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
+          Insira as diretrizes do negócio ou faça o upload de uma imagem no painel lateral e clique em <strong className="text-amber-500">Gerar Código</strong>.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header Info Banner */}
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border/40 bg-card/50 p-5">
+        <div>
+          <span className="text-[10px] font-bold text-muted-foreground block uppercase">Título da Regra</span>
+          <span className="text-xs font-bold text-foreground">{result.titulo}</span>
+        </div>
+        <div>
+          <span className="text-[10px] font-bold text-muted-foreground block uppercase">Módulo</span>
+          <span className="text-xs font-bold text-amber-400">{result.modulo}</span>
+        </div>
+        <div>
+          <span className="text-[10px] font-bold text-muted-foreground block uppercase">Identificador</span>
+          <span className="text-xs font-semibold text-slate-400 font-mono">{result.identificador}</span>
+        </div>
+        <div>
+          <span className="text-[10px] font-bold text-muted-foreground block uppercase">Descrição</span>
+          <span className="text-xs text-slate-400 line-clamp-1">{result.descricao}</span>
+        </div>
+      </div>
+
+      {/* Tabs Output Selector */}
+      <div className="rounded-xl border border-border/40 bg-[#0f111a]/95 overflow-hidden">
+        <div className="flex border-b border-border/30 bg-card/10 px-4 gap-1">
+          {[
+            { id: 'script', label: '📄 SCRIPT LSP' },
+            { id: 'variaveis', label: '🔤 VARIÁVEIS' },
+            { id: 'funcoes', label: '⚙️ FUNÇÕES' },
+            { id: 'ajuda', label: '💡 RECOMENDAÇÕES' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id as any)}
+              className={`px-4 py-3 text-xs font-bold transition-all border-b-2 ${
+                tab === t.id
+                  ? 'border-amber-500 text-amber-500'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Script Display */}
+        {tab === 'script' && (
+          <div className="relative p-6 font-mono text-xs overflow-x-auto max-h-[400px]">
+            <button
+              onClick={copyCode}
+              className={`absolute top-4 right-4 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold transition-all ${
+                copied 
+                  ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-400' 
+                  : 'bg-secondary/40 border-border/40 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{copied ? 'Copiado!' : 'Copiar'}</span>
+            </button>
+
+            <pre className="space-y-1.5 pr-20">
+              {result.script.split('\n').map((line: string, i: number) => (
+                <div key={i} className="flex items-start">
+                  <span className="text-[10px] text-slate-600 select-none w-8 mr-4 text-right">{String(i+1).padStart(2, '0')}</span>
+                  <span className={getLineColor(line)}>{line}</span>
+                </div>
+              ))}
+            </pre>
+          </div>
+        )}
+
+        {/* Variables Display */}
+        {tab === 'variaveis' && (
+          <div className="p-6">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border/40 text-muted-foreground">
+                  <th className="py-2.5 font-bold uppercase tracking-wider">Variável</th>
+                  <th className="py-2.5 font-bold uppercase tracking-wider text-center">Tipo</th>
+                  <th className="py-2.5 font-bold uppercase tracking-wider">Descrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.variaveis.map((v: any, i: number) => (
+                  <tr key={i} className="border-b border-border/20 font-medium">
+                    <td className="py-3 text-emerald-400 font-mono font-bold">{v.nome}</td>
+                    <td className="py-3 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        v.tipo === 'Alfa' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'
+                      }`}>
+                        {v.tipo}
+                      </span>
+                    </td>
+                    <td className="py-3 text-muted-foreground">{v.descricao}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Functions Display */}
+        {tab === 'funcoes' && (
+          <div className="p-6 space-y-4">
+            {result.funcoes.map((f: any, i: number) => (
+              <div key={i} className="flex gap-4 p-4 rounded-xl border border-border/40 bg-secondary/10">
+                <span className="text-amber-500 font-bold font-mono text-xs">{f.nome}()</span>
+                <p className="text-muted-foreground text-xs leading-relaxed">{f.descricao}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Recommendations Display */}
+        {tab === 'ajuda' && (
+          <div className="p-6 space-y-6">
+            {result.atencao && (
+              <div className="flex gap-3 p-4 rounded-xl border border-rose-500/20 bg-rose-500/[0.02]">
+                <AlertTriangle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wide block mb-1">Ponto de Atenção</span>
+                  <p className="text-xs text-rose-300/90 leading-relaxed">{result.atencao}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block">Dicas de Homologação</span>
+              {result.dicas.map((d: string, i: number) => (
+                <div key={i} className="flex gap-3 p-3 rounded-xl border border-border/30 bg-secondary/5 text-xs text-muted-foreground leading-relaxed">
+                  <span className="text-amber-500 font-bold">{i + 1}.</span>
+                  <p>{d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default LspGeneratorRoute;
