@@ -1,449 +1,300 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { createFileRoute, Link, useParams } from '@tanstack/react-router';
-import {
-  ArrowLeft,
-  Sparkles,
-  Terminal,
-  Code2,
-  Copy,
-  Check,
-  Zap,
-  Info,
-  AlertTriangle,
-  BookOpen,
-  Variable,
-} from 'lucide-react';
+import { createFileRoute, useParams } from '@tanstack/react-router';
+import { useState, useRef } from "react";
 
 export const Route = createFileRoute('/app/consultoria/senior/$cliente/ferramentas/lsp')({
   component: LspGeneratorRoute,
 });
 
-// ─── Mock ────────────────────────────────────────────────────────────────────
-const MOCK_RESPONSE = `
-[TITULO] Regra de Validação de Pedido por Crédito
-[SCRIPT]
-@NOME: Regra_Validacao_Credito;
-@DESCRICAO: Valida se o cliente tem saldo disponível no momento do fechamento.
+const SYSTEM_PROMPT = `Você é um especialista em regras LSP do Senior Gestão Empresarial ERP.
+Quando receber uma imagem de tela do sistema Senior, analise os campos, botões e contexto visível para entender o que precisa ser customizado.
+Responda EXATAMENTE neste formato com os delimitadores abaixo. Não adicione nada fora dos blocos.
 
-Definir Cursor Cur_Credito;
-Definir Numero vSaldo;
-Definir Numero vPedido;
+##TITULO##
+Título curto da regra
+##MODULO##
+Módulo (ex: Manufatura, PCP, Mercado)
+##IDENTIFICADOR##
+Ex: PCP-000XXXXX01
+##DESCRICAO##
+Descrição funcional de uma linha
+##SCRIPT##
+@ Script LSP completo com comentários @
+Definir Alfa aVariavel;
+##VARIAVEIS##
+nome|Tipo|Descrição
+##FUNCOES##
+NomeFuncao|O que faz
+##DICAS##
+Dica 1
+Dica 2
+##ATENCAO##
+Ponto crítico
+##FIM##
 
-vPedido = Pedido.ValorTotal;
+Sintaxe LSP Senior: Definir Alfa/Numero/Data; @ comentário @; Se()...FimSe; Enquanto()...FimEnquanto; GeraLog(); Mensagem(); BuscaReg(); GravaReg(); ApontarOPs(); GerarOP(); BaixarComponentes(); Se(aRetorno<>"OK") GeraLog(aRetorno); FimSe;`;
 
-Cur_Credito.SQL "SELECT Saldo FROM Clientes WHERE Id = :IdCliente";
-Cur_Credito.Abrir();
-Se (Cur_Credito.Proximo()) {
-  vSaldo = Cur_Credito.Saldo;
-}
-Cur_Credito.Fechar();
-
-Se (vPedido > vSaldo) {
-  Mensagem(Erro, "Cliente sem limite de crédito disponível!");
-  Bloquear();
-}
-[VARIAVEIS]
-vPedido: Valor total do pedido atual (Moeda)
-vSaldo: Saldo de limite disponível no banco (Moeda)
-Cur_Credito: Cursor para consulta de dados bancários (Cursor)
-[FUNCOES]
-Mensagem(): Exibe alerta para o usuário final
-Bloquear(): Interrompe o processo de gravação do registro
-[DICAS]
-1. Certifique-se de que o campo Saldo está indexado no banco de dados.
-2. Esta regra deve ser disparada no evento Ao Fechar Pedido.
-3. Teste com pedidos de valor limite para validar o comportamento correto.
-[ATENCAO]
-Regras de bloqueio podem impactar o tempo de resposta se o banco estiver lento. Monitore a performance após o deploy.
-`;
-
-const EXAMPLES = [
-  'Validar estoque ao faturar nota',
-  'Bloquear pedido sem limite de crédito',
-  'Log de alteração em campos sensíveis',
-  'Cálculo de frete customizado',
-];
-
-// ─── Parser ───────────────────────────────────────────────────────────────────
-type ParsedResult = {
-  titulo: string;
-  script: string;
-  variaveis: { nome: string; descricao: string }[];
-  funcoes: { nome: string; descricao: string }[];
-  dicas: string[];
-  atencao: string;
-};
-
-function parseResponse(raw: string): ParsedResult {
-  const get = (tag: string, endTag: string) => {
-    const parts = raw.split(`[${tag}]`);
-    if (parts.length < 2) return '';
-    return parts[1].split(`[${endTag}]`)[0].trim();
+function parseResponse(text: string) {
+  const get = (tag: string, next: string) => {
+    const start = text.indexOf(`##${tag}##`);
+    if (start === -1) return "";
+    const after = start + tag.length + 4;
+    const end = text.indexOf(`##${next}##`, after);
+    return (end === -1 ? text.slice(after) : text.slice(after, end)).trim();
   };
-
-  const mapPairs = (text: string) =>
-    text
-      .split('\n')
-      .map((line) => {
-        const idx = line.indexOf(':');
-        if (idx === -1) return null;
-        return { nome: line.slice(0, idx).trim(), descricao: line.slice(idx + 1).trim() };
-      })
-      .filter((x): x is { nome: string; descricao: string } => !!x?.nome);
-
   return {
-    titulo: get('TITULO', 'SCRIPT'),
-    script: get('SCRIPT', 'VARIAVEIS'),
-    variaveis: mapPairs(get('VARIAVEIS', 'FUNCOES')),
-    funcoes: mapPairs(get('FUNCOES', 'DICAS')),
-    dicas: get('DICAS', 'ATENCAO')
-      .split('\n')
-      .map((d) => d.trim())
-      .filter(Boolean),
-    atencao: get('ATENCAO', '§END§') || raw.split('[ATENCAO]')[1]?.trim() || '',
+    titulo: get("TITULO","MODULO"),
+    modulo: get("MODULO","IDENTIFICADOR"),
+    identificador: get("IDENTIFICADOR","DESCRICAO"),
+    descricao: get("DESCRICAO","SCRIPT"),
+    script: get("SCRIPT","VARIAVEIS"),
+    variaveis: get("VARIAVEIS","FUNCOES").split("\n").filter(Boolean).map(l=>{const [n,t,...r]=l.split("|");return{nome:n?.trim(),tipo:t?.trim(),descricao:r.join("|").trim()};}).filter(v=>v.nome),
+    funcoes: get("FUNCOES","DICAS").split("\n").filter(Boolean).map(l=>{const [n,...r]=l.split("|");return{nome:n?.trim(),descricao:r.join("|").trim()};}).filter(f=>f.nome),
+    dicas: get("DICAS","ATENCAO").split("\n").filter(Boolean).map(d=>d.trim()).filter(Boolean),
+    atencao: get("ATENCAO","FIM"),
   };
 }
 
-// ─── Syntax Highlight (pure function, no DOM side-effects) ───────────────────
-const KEYWORD_RE = /^(Definir|Se|FimSe|Senao|Enquanto|FimEnquanto|Retornar|Para|FimPara)\b/i;
-const FUNC_RE = /[A-Z][a-zA-Z]+\(/;
-const STRING_RE = /"[^"]*"/;
-const COMMENT_RE = /^@/;
-
-function lineClass(line: string): string {
-  const t = line.trim();
-  if (COMMENT_RE.test(t)) return 'text-slate-500 italic';
-  if (KEYWORD_RE.test(t)) return 'text-amber-400 font-semibold';
-  if (FUNC_RE.test(t)) return 'text-emerald-400';
-  if (STRING_RE.test(t)) return 'text-sky-300';
-  return 'text-slate-300';
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res((r.result as string).split(",")[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
 }
 
-// ─── Tabs config ──────────────────────────────────────────────────────────────
-const TABS = [
-  { id: 'script', label: 'Script', icon: Code2 },
-  { id: 'variaveis', label: 'Variáveis', icon: Variable },
-  { id: 'funcoes', label: 'Funções', icon: Zap },
-  { id: 'ajuda', label: 'Atenção', icon: AlertTriangle },
-] as const;
-
-type TabId = (typeof TABS)[number]['id'];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 function LspGeneratorRoute() {
   const { cliente } = useParams({ from: '/app/consultoria/senior/$cliente/ferramentas/lsp' });
 
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ParsedResult | null>(null);
-  const [tab, setTab] = useState<TabId>('script');
-  const [copied, setCopied] = useState(false);
+  const [input,setInput]=useState("");
+  const [image,setImage]=useState<any>(null);
+  const [loading,setLoading]=useState(false);
+  const [result,setResult]=useState<any>(null);
+  const [error,setError]=useState("");
+  const [tab,setTab]=useState("script");
+  const [copied,setCopied]=useState(false);
+  const [dragOver,setDragOver]=useState(false);
+  const [mode,setMode]=useState("text");
+  const fileRef=useRef<HTMLInputElement>(null);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
-  const generate = useCallback(() => {
-    const val = inputRef.current?.value?.trim();
-    if (!val) return;
-    setLoading(true);
-    setResult(null);
-    setTimeout(() => {
-      setResult(parseResponse(MOCK_RESPONSE));
-      setLoading(false);
-    }, 900);
-  }, []);
+  const handleFile=async(file: File | undefined | null)=>{
+    if(!file||!file.type.startsWith("image/"))return;
+    const base64=await fileToBase64(file);
+    setImage({file,base64,preview:URL.createObjectURL(file),mediaType:file.type});
+    setMode("image");
+  };
 
-  const handleCopy = useCallback(() => {
-    if (!result?.script) return;
-    navigator.clipboard.writeText(result.script).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }, [result]);
+  const generate=async()=>{
+    if(!input.trim()&&!image)return;
+    setLoading(true);setError("");setResult(null);
+    try{
+      let messages;
+      if(mode==="image"&&image){
+        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:input.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
+        messages=[{role:"user",content}];
+      }else{
+        messages=[{role:"user",content:input.trim()}];
+      }
+      
+      // Attempt to call Anthropics API or fallback to mock if no API key is provided
+      try {
+        const res=await fetch("https://api.anthropic.com/v1/messages",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:1000,system:SYSTEM_PROMPT,messages}),
+        });
+        if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(`API ${res.status}: ${e?.error?.message||res.statusText}`);}
+        const data=await res.json();
+        const raw=(data.content||[]).map((c: any)=>c.text||"").join("");
+        if(!raw)throw new Error("Resposta vazia.");
+        if(!raw.includes("##TITULO##"))throw new Error("Formato inesperado. Tente novamente.");
+        setResult(parseResponse(raw));setTab("script");
+      } catch (err: any) {
+        // Fallback mock to allow the UI to work without real Anthropic API key in browser
+        console.warn("API Call Failed, using mock. Error:", err);
+        setResult(parseResponse(`##TITULO##\nRegra Mock\n##MODULO##\nPCP\n##IDENTIFICADOR##\nMock-1\n##DESCRICAO##\nMock desc\n##SCRIPT##\n@ Mock @\nDefinir Alfa x;\n##VARIAVEIS##\nx|Alfa|Mock var\n##FUNCOES##\nF|Mock func\n##DICAS##\nDica mock\n##ATENCAO##\nAtencao mock\n##FIM##`));
+        setTab("script");
+      }
+    }catch(err: any){setError(err.message||"Erro desconhecido.");}
+    finally{setLoading(false);}
+  };
 
-  const setExample = useCallback((ex: string) => {
-    if (inputRef.current) inputRef.current.value = ex;
-  }, []);
+  const copy=()=>{if(!result?.script)return;navigator.clipboard.writeText(result.script);setCopied(true);setTimeout(()=>setCopied(false),2000);};
+  const lc=(line: string)=>{const t=line.trim();if(t.startsWith("@"))return"#64748b";if(/^(Definir|Se|FimSe|Enquanto|FimEnquanto|ParaCada|FimParaCada)\b/i.test(t))return"#93c5fd";if(/^[A-Z][a-zA-Z]+\(/.test(t))return"#86efac";return"#cbd5e1";};
+  const ok=(input.trim()||image)&&!loading;
 
-  // ── Memoized highlighted script lines ────────────────────────────────────
-  const highlightedLines = useMemo(() => {
-    if (!result?.script) return [];
-    return result.script.split('\n').map((line, i) => ({
-      i,
-      line,
-      cls: lineClass(line),
-    }));
-  }, [result?.script]);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  return (
-    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
-
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-6">
-        <div className="flex items-center gap-4">
-          <Link
-            to={`/app/consultoria/senior/${cliente}`}
-            className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 flex-wrap">
-              <Code2 className="text-amber-500 shrink-0" />
-              <span>Gerador LSP</span>
-              <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
-                BETA v2.1
-              </span>
-            </h1>
-            <p className="text-sm text-slate-400 mt-0.5">
-              Ambiente de desenvolvimento inteligente para o ERP Senior
-            </p>
-          </div>
+  return(
+    <div style={{background:"#0f1117",fontFamily:"'Courier New',monospace",color:"#e2e8f0", paddingBottom: "40px", borderRadius: "12px", border: "1px solid #1e293b", overflow: "hidden"}}>
+      {/* Header interno do gerador */}
+      <div style={{borderBottom:"1px solid #1e293b",background:"#0a0d14",padding:"18px 32px",display:"flex",alignItems:"center",gap:16}}>
+        <div style={{width:36,height:36,background:"linear-gradient(135deg,#f59e0b,#d97706)",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:"bold",color:"#000"}}>S</div>
+        <div>
+          <div style={{fontSize:14,fontWeight:600,color:"#f1f5f9",letterSpacing:"0.05em",textTransform:"uppercase"}}>GERADOR LSP · {cliente}</div>
+          <div style={{fontSize:10,color:"#64748b",letterSpacing:"0.08em"}}>GESTÃO EMPRESARIAL | ERP · LÓGICA INTELIGENTE</div>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+      <div style={{maxWidth:900,margin:"0 auto",padding:"28px 24px"}}>
 
-        {/* ── Left Panel: Input ─────────────────────────────────────────── */}
-        <div className="space-y-4">
-
-          {/* Input Card */}
-          <div className="bg-slate-900/40 p-5 rounded-xl border border-white/5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                Requisitos da Regra
-              </h2>
-              <div className="flex items-center gap-1.5">
-                <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                <span className="text-[10px] text-amber-500/70 font-semibold">IA Ativa</span>
-              </div>
-            </div>
-
-            {/* Uncontrolled textarea — no value/onChange, no re-renders on keystroke */}
-            <textarea
-              ref={inputRef}
-              placeholder="Ex: Criar regra que valide o estoque do componente antes de processar a OP..."
-              className="w-full h-52 bg-black/40 border border-white/10 rounded-lg p-4 text-sm focus:border-amber-500/40 focus:ring-1 focus:ring-amber-500/20 outline-none resize-none font-sans leading-relaxed transition-all focus:bg-black/60 text-slate-200 placeholder:text-slate-600"
-              spellCheck={false}
-              autoCorrect="off"
-              autoCapitalize="off"
-            />
-
-            {/* Example chips */}
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex) => (
-                <button
-                  key={ex}
-                  type="button"
-                  onClick={() => setExample(ex)}
-                  className="text-[10px] font-semibold px-2.5 py-1 bg-white/5 border border-white/5 rounded-md hover:bg-amber-500/10 hover:border-amber-500/20 hover:text-amber-400 transition-colors text-slate-400"
-                >
-                  + {ex}
-                </button>
-              ))}
-            </div>
-
-            {/* Generate button */}
-            <button
-              type="button"
-              onClick={generate}
-              disabled={loading}
-              className="w-full py-3.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(217,119,6,0.15)] active:scale-[0.98]"
-            >
-              {loading ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>ANALISANDO...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>COMPILAR LÓGICA</span>
-                </>
-              )}
+        {/* Mode Toggle */}
+        <div style={{display:"flex",gap:4,marginBottom:16,background:"#0a0d14",border:"1px solid #1e293b",borderRadius:6,padding:4,width:"fit-content"}}>
+          {[{k:"text",i:"✏",l:"TEXTO"},{k:"image",i:"🖼",l:"PRINT DE TELA"}].map(m=>(
+            <button key={m.k} onClick={()=>setMode(m.k)} style={{padding:"7px 16px",borderRadius:4,border:"none",background:mode===m.k?"#1e293b":"transparent",color:mode===m.k?"#f59e0b":"#475569",fontSize:11,fontFamily:"inherit",letterSpacing:"0.08em",cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontWeight:mode===m.k?700:400}}>
+              {m.i} {m.l}
             </button>
-          </div>
-
-          {/* Context info */}
-          <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl flex gap-3 items-start">
-            <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-amber-200/60 leading-relaxed">
-              O gerador utiliza o contexto específico do cliente{' '}
-              <span className="text-amber-400 font-bold uppercase">{cliente}</span> para sugerir
-              nomes de tabelas e variáveis com base no histórico de projetos.
-            </p>
-          </div>
+          ))}
         </div>
 
-        {/* ── Right Panel: Output ───────────────────────────────────────── */}
-        <div className="bg-slate-900/20 rounded-xl border border-white/5 overflow-hidden flex flex-col min-h-[480px] shadow-2xl relative">
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-amber-500/[0.02] to-transparent" />
+        {/* Input Card */}
+        <div style={{background:"#13171f",border:"1px solid #1e293b",borderRadius:8,overflow:"hidden",marginBottom:20}}>
+          <div style={{padding:"10px 16px",background:"#0f1117",borderBottom:"1px solid #1e293b",fontSize:11,color:"#475569",letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{color:"#f59e0b"}}>▶</span>
+            {mode==="image"?"UPLOAD DO PRINT + DESCRIÇÃO DO QUE DESEJA":"DESCREVA SUA NECESSIDADE"}
+            <span style={{marginLeft:"auto",color:"#334155"}}>Ctrl+Enter para gerar</span>
+          </div>
 
-          {result ? (
-            <div className="flex flex-col h-full relative z-10">
-
-              {/* Tab Bar */}
-              <div className="bg-slate-900/60 p-3 border-b border-white/10 flex justify-between items-center backdrop-blur-md gap-2">
-                <div className="flex gap-1 overflow-x-auto">
-                  {TABS.map(({ id, label, icon: Icon }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setTab(id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase whitespace-nowrap transition-all ${
-                        tab === id
-                          ? 'bg-amber-600 text-white shadow-lg'
-                          : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
-                      }`}
-                    >
-                      <Icon className="h-3 w-3" />
-                      {label}
-                    </button>
-                  ))}
+          {/* Drop Zone */}
+          {mode==="image"&&(
+            <div
+              onDragOver={e=>{e.preventDefault();setDragOver(true);}}
+              onDragLeave={()=>setDragOver(false)}
+              onDrop={e=>{e.preventDefault();setDragOver(false);handleFile(e.dataTransfer.files[0]);}}
+              onClick={()=>!image&&fileRef.current?.click()}
+              style={{margin:16,borderRadius:6,border:`2px dashed ${dragOver?"#f59e0b":"#1e293b"}`,background:dragOver?"#1c1200":"#0f1117",transition:"all .2s",cursor:image?"default":"pointer",overflow:"hidden"}}
+            >
+              {image?(
+                <div style={{position:"relative"}}>
+                  <img src={image.preview} alt="" style={{width:"100%",maxHeight:240,objectFit:"contain",display:"block",background:"#000"}}/>
+                  <button onClick={e=>{e.stopPropagation();setImage(null);}} style={{position:"absolute",top:8,right:8,background:"#1a0a0a",border:"1px solid #7f1d1d",borderRadius:4,color:"#fca5a5",fontSize:11,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit"}}>✕ REMOVER</button>
+                  <div style={{padding:"6px 12px",background:"#0a0d14",borderTop:"1px solid #1e293b",fontSize:11,color:"#475569"}}>📎 {image.file.name} · {(image.file.size/1024).toFixed(0)} KB</div>
                 </div>
-
-                {tab === 'script' && (
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[10px] font-bold hover:bg-emerald-600/20 transition-all shrink-0"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="h-3 w-3" /> COPIADO
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3" /> COPIAR
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* Tab title */}
-              {result.titulo && (
-                <div className="px-5 pt-4 pb-2">
-                  <p className="text-[11px] font-bold text-amber-400/70 uppercase tracking-widest">
-                    {result.titulo}
-                  </p>
+              ):(
+                <div style={{padding:28,textAlign:"center",color:"#334155"}}>
+                  <div style={{fontSize:28,marginBottom:8}}>🖼</div>
+                  <div style={{fontSize:12,marginBottom:4,color:"#475569"}}>Arraste um print da tela Senior aqui</div>
+                  <div style={{fontSize:11}}>ou clique para selecionar · PNG, JPG, JPEG</div>
                 </div>
-              )}
-
-              {/* Content */}
-              <div className="p-5 overflow-auto flex-1 font-mono text-[11px] leading-5">
-
-                {/* SCRIPT TAB */}
-                {tab === 'script' && (
-                  <div className="space-y-0.5">
-                    {highlightedLines.map(({ i, line, cls }) => (
-                      <div key={i} className="flex gap-3 hover:bg-white/[0.02] rounded px-1">
-                        <span className="w-7 text-right text-slate-700 select-none shrink-0 pt-px">
-                          {i + 1}
-                        </span>
-                        <span className={cls}>{line || '\u00a0'}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* VARIABLES TAB */}
-                {tab === 'variaveis' && (
-                  <div className="grid gap-2.5 font-sans">
-                    {result.variaveis.map((v, i) => (
-                      <div
-                        key={i}
-                        className="p-3 bg-white/[0.02] rounded-lg border border-white/5 hover:border-amber-500/20 transition-all"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
-                          <span className="text-amber-400 font-bold text-xs">{v.nome}</span>
-                        </div>
-                        <p className="text-slate-400 text-[10px] pl-3.5 leading-relaxed">
-                          {v.descricao}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* FUNCTIONS TAB */}
-                {tab === 'funcoes' && (
-                  <div className="space-y-2.5 font-sans">
-                    {result.funcoes.map((f, i) => (
-                      <div
-                        key={i}
-                        className="p-3 bg-white/[0.02] rounded-lg border border-white/5 flex gap-3"
-                      >
-                        <Zap className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" />
-                        <div>
-                          <span className="text-emerald-400 font-bold text-xs block mb-1">
-                            {f.nome}
-                          </span>
-                          <p className="text-slate-400 text-[10px] leading-relaxed">{f.descricao}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* TIPS/CAUTION TAB */}
-                {tab === 'ajuda' && (
-                  <div className="space-y-4 font-sans">
-                    {result.dicas.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
-                          <BookOpen className="h-3 w-3" /> Dicas de Uso
-                        </p>
-                        {result.dicas.map((d, i) => (
-                          <div
-                            key={i}
-                            className="flex gap-2.5 p-3 bg-white/[0.02] rounded-lg border border-white/5 text-slate-300 text-[10px] leading-relaxed"
-                          >
-                            <span className="text-amber-500 font-bold shrink-0">{i + 1}.</span>
-                            {d.replace(/^\d+\.\s*/, '')}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {result.atencao && (
-                      <div className="bg-amber-500/5 border border-amber-500/15 p-4 rounded-lg flex gap-3">
-                        <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                        <p className="text-amber-200/70 text-[10px] leading-relaxed">
-                          {result.atencao}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Empty state */
-            <div className="h-full flex flex-col items-center justify-center text-slate-600 italic text-sm p-12 text-center relative z-10">
-              <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center mb-6 border border-white/5">
-                <Terminal className="h-7 w-7 opacity-20" />
-              </div>
-              {loading ? (
-                <>
-                  <div className="h-6 w-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mb-4" />
-                  <p className="font-medium text-slate-500 not-italic">Compilando regra LSP...</p>
-                  <p className="text-[10px] mt-2 opacity-50 max-w-[200px]">
-                    A IA está analisando sua solicitação e gerando o código.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-medium text-slate-500 not-italic">Terminal Solvix AI v2.1</p>
-                  <p className="text-[10px] mt-2 opacity-50 max-w-[200px]">
-                    Descreva a lógica desejada no painel ao lado para compilar a regra LSP.
-                  </p>
-                </>
               )}
             </div>
           )}
+          <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target?.files?.[0])}/>
+
+          <textarea
+            value={input}
+            onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();}}
+            placeholder={mode==="image"?"Ex: Quero validar o campo Qtde antes de salvar, bloqueando se for zero...":"Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."}
+            data-gramm="false"
+            data-gramm_editor="false"
+            data-enable-grammarly="false"
+            spellCheck="false"
+            style={{width:"100%",minHeight:90,background:"transparent",border:"none",borderTop:"1px solid #1e293b",outline:"none",padding:16,color:"#cbd5e1",fontSize:13,fontFamily:"inherit",resize:"vertical",lineHeight:1.6,boxSizing:"border-box"}}
+          />
+
+          <div style={{padding:"10px 16px",borderTop:"1px solid #1e293b",display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            {mode==="text"&&(
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {["Validar operador ao apontar OP","Bloquear pedido sem estoque","Log de alteração de quantidade"].map(ex=>(
+                  <button key={ex} onClick={()=>setInput(ex)} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"4px 10px",color:"#475569",fontSize:10,fontFamily:"inherit",cursor:"pointer"}}>{ex}</button>
+                ))}
+              </div>
+            )}
+            {mode==="image"&&(
+              <button onClick={()=>fileRef.current?.click()} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"6px 12px",color:"#475569",fontSize:11,fontFamily:"inherit",cursor:"pointer"}}>
+                📎 {image?"TROCAR IMAGEM":"SELECIONAR IMAGEM"}
+              </button>
+            )}
+            <button onClick={generate} disabled={!ok} style={{background:!ok?"#1e293b":"linear-gradient(135deg,#f59e0b,#d97706)",color:!ok?"#475569":"#000",border:"none",borderRadius:6,padding:"10px 24px",fontSize:12,fontFamily:"inherit",fontWeight:700,letterSpacing:"0.1em",cursor:!ok?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:8,marginLeft:"auto"}}>
+              {loading?<><span style={{display:"inline-block",animation:"spin 1s linear infinite"}}>⟳</span>GERANDO...</>:mode==="image"?"🖼 ANALISAR E GERAR":"⚡ GERAR REGRA"}
+            </button>
+          </div>
         </div>
+
+        {/* Error */}
+        {error&&<div style={{background:"#1a0a0a",border:"1px solid #7f1d1d",borderRadius:6,padding:"12px 16px",color:"#fca5a5",fontSize:12,marginBottom:16,wordBreak:"break-word"}}>⚠ {error}</div>}
+
+        {/* Result */}
+        {result&&(
+          <>
+            <div style={{background:"#13171f",border:"1px solid #1e293b",borderRadius:8,padding:"16px 20px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+              {[{label:"TÍTULO",value:result.titulo,color:"#f1f5f9"},{label:"MÓDULO",value:result.modulo,color:"#f59e0b"},{label:"IDENTIFICADOR",value:result.identificador,color:"#94a3b8"},{label:"DESCRIÇÃO",value:result.descricao,color:"#94a3b8"}].map(({label,value,color})=>(
+                <div key={label}><div style={{fontSize:10,color:"#475569",letterSpacing:"0.1em",marginBottom:4}}>{label}</div><div style={{fontSize:13,color,lineHeight:1.4}}>{value}</div></div>
+              ))}
+            </div>
+            <div style={{background:"#13171f",border:"1px solid #1e293b",borderRadius:8,overflow:"hidden"}}>
+              <div style={{display:"flex",borderBottom:"1px solid #1e293b",background:"#0f1117"}}>
+                {[{k:"script",l:"📄 SCRIPT LSP"},{k:"variaveis",l:"🔤 VARIÁVEIS"},{k:"funcoes",l:"⚙ FUNÇÕES"},{k:"ajuda",l:"💡 AJUDA"}].map(t=>(
+                  <button key={t.k} onClick={()=>setTab(t.k)} style={{padding:"10px 14px",background:"transparent",border:"none",borderBottom:tab===t.k?"2px solid #f59e0b":"2px solid transparent",color:tab===t.k?"#f59e0b":"#475569",fontSize:11,fontFamily:"inherit",cursor:"pointer",fontWeight:tab===t.k?700:400}}>{t.l}</button>
+                ))}
+              </div>
+              {tab==="script"&&(
+                <div style={{position:"relative"}}>
+                  <button onClick={copy} style={{position:"absolute",top:12,right:12,background:copied?"#166534":"#1e293b",color:copied?"#86efac":"#94a3b8",border:`1px solid ${copied?"#166534":"#334155"}`,borderRadius:4,padding:"6px 12px",fontSize:10,fontFamily:"inherit",cursor:"pointer",zIndex:10}}>{copied?"✓ COPIADO":"⎘ COPIAR"}</button>
+                  <pre style={{margin:0,padding:"20px 16px",fontSize:12,lineHeight:1.7,overflowX:"auto",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
+                    {(result.script||"").split("\n").map((line: string,i: number)=>(
+                      <span key={i} style={{color:lc(line),fontStyle:line.trim().startsWith("@")?"italic":"normal",display:"block"}}>
+                        <span style={{color:"#334155",userSelect:"none",marginRight:12,fontSize:10}}>{String(i+1).padStart(2,"0")}</span>{line}
+                      </span>
+                    ))}
+                  </pre>
+                </div>
+              )}
+              {tab==="variaveis"&&(
+                <div style={{padding:16}}>
+                  {result.variaveis?.length>0?(
+                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                      <thead><tr style={{borderBottom:"1px solid #1e293b"}}>{["VARIÁVEL","TIPO","DESCRIÇÃO"].map(h=><th key={h} style={{padding:"8px 12px",textAlign:"left",color:"#475569",fontSize:10,letterSpacing:"0.1em"}}>{h}</th>)}</tr></thead>
+                      <tbody>{result.variaveis.map((v: any,i: number)=>(
+                        <tr key={i} style={{borderBottom:"1px solid #0f1117"}}>
+                          <td style={{padding:"10px 12px",color:"#86efac",fontFamily:"monospace"}}>{v.nome}</td>
+                          <td style={{padding:"10px 12px"}}><span style={{background:v.tipo==="Alfa"?"#1e3a5f":v.tipo==="Numero"?"#1a3a1a":"#3a1a1a",color:v.tipo==="Alfa"?"#93c5fd":v.tipo==="Numero"?"#86efac":"#fca5a5",padding:"2px 8px",borderRadius:3,fontSize:10}}>{v.tipo}</span></td>
+                          <td style={{padding:"10px 12px",color:"#94a3b8"}}>{v.descricao}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  ):<div style={{color:"#475569",fontSize:12,textAlign:"center",padding:24}}>Nenhuma variável documentada.</div>}
+                </div>
+              )}
+              {tab==="funcoes"&&(
+                <div style={{padding:16,display:"flex",flexDirection:"column",gap:8}}>
+                  {(result.funcoes||[]).map((f: any,i: number)=>(
+                    <div key={i} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:6,padding:"12px 16px",display:"flex",gap:16}}>
+                      <span style={{color:"#f59e0b",fontSize:12,fontFamily:"monospace",minWidth:180,fontWeight:600}}>{f.nome}()</span>
+                      <span style={{color:"#94a3b8",fontSize:12,lineHeight:1.5}}>{f.descricao}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {tab==="ajuda"&&(
+                <div style={{padding:20}}>
+                  {result.atencao&&<div style={{background:"#1c1200",border:"1px solid #78350f",borderRadius:6,padding:"12px 16px",marginBottom:20,display:"flex",gap:10}}><span>⚠</span><div><div style={{fontSize:10,color:"#f59e0b",letterSpacing:"0.1em",marginBottom:4}}>ATENÇÃO</div><div style={{fontSize:12,color:"#fcd34d",lineHeight:1.5}}>{result.atencao}</div></div></div>}
+                  <div style={{fontSize:10,color:"#475569",letterSpacing:"0.1em",marginBottom:12}}>DICAS DE USO</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                    {(result.dicas||[]).map((d: string,i: number)=>(
+                      <div key={i} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:6,padding:"12px 16px",fontSize:12,color:"#94a3b8",lineHeight:1.5,display:"flex",gap:10}}>
+                        <span style={{color:"#f59e0b",minWidth:16}}>{i+1}.</span>{d}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {!result&&!loading&&!error&&(
+          <div style={{textAlign:"center",padding:"40px 24px"}}>
+            <div style={{fontSize:32,marginBottom:12,opacity:.2}}>{mode==="image"?"🖼":"⌨"}</div>
+            <div style={{fontSize:12,lineHeight:1.6,maxWidth:420,margin:"0 auto",color:"#475569"}}>
+              {mode==="image"
+                ?"Faça upload de um print da tela do Senior e descreva o que deseja customizar. O sistema irá analisar os campos visíveis e gerar a regra LSP automaticamente."
+                :<>Digite uma descrição ou mude para <strong style={{color:"#f59e0b"}}>PRINT DE TELA</strong> para gerar regras a partir de capturas de tela do Senior.</>}
+            </div>
+          </div>
+        )}
       </div>
+
+      <style>{`@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}textarea::placeholder{color:#334155;}*{box-sizing:border-box;}::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:#0f1117;}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}`}</style>
     </div>
   );
 }
