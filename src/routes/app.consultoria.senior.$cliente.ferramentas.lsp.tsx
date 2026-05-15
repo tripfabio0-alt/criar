@@ -275,7 +275,7 @@ function LspGeneratorRoute() {
                     ? 'Ex: Quero validar se a quantidade de faturamento na tela é maior que zero...' 
                     : 'Ex: Quero bloquear o pedido de venda se o cliente estiver inadimplente...'
                 }
-                className="w-full h-32 rounded-lg border border-border/40 bg-secondary/10 px-4 py-3 text-xs text-foreground outline-none focus:border-amber-500/40 focus:bg-secondary/20 transition-all resize-none leading-relaxed"
+                className="w-full h-32 rounded-lg border border-border/40 bg-secondary/10 px-4 py-3 text-xs text-foreground outline-none focus:border-amber-500/40 focus:bg-secondary/20 resize-none leading-relaxed"
               />
             </div>
 
