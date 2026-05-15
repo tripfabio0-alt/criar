@@ -9,14 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DebugLspRouteImport } from './routes/debug-lsp'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DebugLspRouteImport } from './routes/debug.lsp'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConsultoriaSeniorClienteRouteImport } from './routes/app.consultoria.senior.$cliente'
 import { Route as AppConsultoriaSeniorClienteIndexRouteImport } from './routes/app.consultoria.senior.$cliente.index'
 import { Route as AppConsultoriaSeniorClienteFerramentasLspRouteImport } from './routes/app.consultoria.senior.$cliente.ferramentas.lsp'
 
+const DebugLspRoute = DebugLspRouteImport.update({
+  id: '/debug-lsp',
+  path: '/debug-lsp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -25,11 +30,6 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DebugLspRoute = DebugLspRouteImport.update({
-  id: '/debug/lsp',
-  path: '/debug/lsp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -59,8 +59,8 @@ const AppConsultoriaSeniorClienteFerramentasLspRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/debug-lsp': typeof DebugLspRoute
   '/app/dashboard': typeof AppDashboardRoute
-  '/debug/lsp': typeof DebugLspRoute
   '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteRouteWithChildren
   '/app/consultoria/senior/$cliente/': typeof AppConsultoriaSeniorClienteIndexRoute
   '/app/consultoria/senior/$cliente/ferramentas/lsp': typeof AppConsultoriaSeniorClienteFerramentasLspRoute
@@ -68,8 +68,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/debug-lsp': typeof DebugLspRoute
   '/app/dashboard': typeof AppDashboardRoute
-  '/debug/lsp': typeof DebugLspRoute
   '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteIndexRoute
   '/app/consultoria/senior/$cliente/ferramentas/lsp': typeof AppConsultoriaSeniorClienteFerramentasLspRoute
 }
@@ -77,8 +77,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/debug-lsp': typeof DebugLspRoute
   '/app/dashboard': typeof AppDashboardRoute
-  '/debug/lsp': typeof DebugLspRoute
   '/app/consultoria/senior/$cliente': typeof AppConsultoriaSeniorClienteRouteWithChildren
   '/app/consultoria/senior/$cliente/': typeof AppConsultoriaSeniorClienteIndexRoute
   '/app/consultoria/senior/$cliente/ferramentas/lsp': typeof AppConsultoriaSeniorClienteFerramentasLspRoute
@@ -88,8 +88,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/debug-lsp'
     | '/app/dashboard'
-    | '/debug/lsp'
     | '/app/consultoria/senior/$cliente'
     | '/app/consultoria/senior/$cliente/'
     | '/app/consultoria/senior/$cliente/ferramentas/lsp'
@@ -97,16 +97,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/app'
+    | '/debug-lsp'
     | '/app/dashboard'
-    | '/debug/lsp'
     | '/app/consultoria/senior/$cliente'
     | '/app/consultoria/senior/$cliente/ferramentas/lsp'
   id:
     | '__root__'
     | '/'
     | '/app'
+    | '/debug-lsp'
     | '/app/dashboard'
-    | '/debug/lsp'
     | '/app/consultoria/senior/$cliente'
     | '/app/consultoria/senior/$cliente/'
     | '/app/consultoria/senior/$cliente/ferramentas/lsp'
@@ -120,6 +120,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/debug-lsp': {
+      id: '/debug-lsp'
+      path: '/debug-lsp'
+      fullPath: '/debug-lsp'
+      preLoaderRoute: typeof DebugLspRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -132,13 +139,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/debug/lsp': {
-      id: '/debug/lsp'
-      path: '/debug/lsp'
-      fullPath: '/debug/lsp'
-      preLoaderRoute: typeof DebugLspRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/dashboard': {

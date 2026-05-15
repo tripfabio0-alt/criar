@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/debug/lsp')({
+export const Route = createFileRoute('/debug-lsp')({
   component: DebugLspPage,
 });
 
