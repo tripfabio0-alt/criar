@@ -66,7 +66,7 @@ function fileToBase64(file: File): Promise<string> {
 function LspGeneratorRoute() {
   const { cliente } = useParams({ from: '/app/consultoria/senior/$cliente/ferramentas/lsp' });
 
-  const [input,setInput]=useState("");
+  const inputRef=useRef<HTMLTextAreaElement>(null);
   const [image,setImage]=useState<any>(null);
   const [loading,setLoading]=useState(false);
   const [result,setResult]=useState<any>(null);
@@ -85,15 +85,16 @@ function LspGeneratorRoute() {
   };
 
   const generate=async()=>{
-    if(!input.trim()&&!image)return;
+    const currentInput = inputRef.current?.value || "";
+    if(!currentInput.trim()&&!image)return;
     setLoading(true);setError("");setResult(null);
     try{
       let messages;
       if(mode==="image"&&image){
-        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:input.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
+        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:currentInput.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
         messages=[{role:"user",content}];
       }else{
-        messages=[{role:"user",content:input.trim()}];
+        messages=[{role:"user",content:currentInput.trim()}];
       }
       
       // Attempt to call Anthropics API or fallback to mock if no API key is provided
@@ -121,7 +122,7 @@ function LspGeneratorRoute() {
 
   const copy=()=>{if(!result?.script)return;navigator.clipboard.writeText(result.script);setCopied(true);setTimeout(()=>setCopied(false),2000);};
   const lc=(line: string)=>{const t=line.trim();if(t.startsWith("@"))return"#64748b";if(/^(Definir|Se|FimSe|Enquanto|FimEnquanto|ParaCada|FimParaCada)\b/i.test(t))return"#93c5fd";if(/^[A-Z][a-zA-Z]+\(/.test(t))return"#86efac";return"#cbd5e1";};
-  const ok=(input.trim()||image)&&!loading;
+  const ok=!loading; // Removed input check here to avoid re-renders. Button always clickable, but generates only if valid.
 
   return(
     <div style={{background:"#0f1117",fontFamily:"'Courier New',monospace",color:"#e2e8f0", paddingBottom: "40px", borderRadius: "12px", border: "1px solid #1e293b", overflow: "hidden"}}>
@@ -180,14 +181,15 @@ function LspGeneratorRoute() {
           <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target?.files?.[0])}/>
 
           <textarea
-            value={input}
-            onChange={e=>setInput(e.target.value)}
+            ref={inputRef}
+            defaultValue=""
             onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();}}
             placeholder={mode==="image"?"Ex: Quero validar o campo Qtde antes de salvar, bloqueando se for zero...":"Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."}
             data-gramm="false"
             data-gramm_editor="false"
             data-enable-grammarly="false"
-            spellCheck="false"
+            spellCheck={false}
+            className="placeholder:text-slate-600 focus:outline-none"
             style={{width:"100%",minHeight:90,background:"transparent",border:"none",borderTop:"1px solid #1e293b",outline:"none",padding:16,color:"#cbd5e1",fontSize:13,fontFamily:"inherit",resize:"vertical",lineHeight:1.6,boxSizing:"border-box"}}
           />
 
@@ -195,7 +197,7 @@ function LspGeneratorRoute() {
             {mode==="text"&&(
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {["Validar operador ao apontar OP","Bloquear pedido sem estoque","Log de alteração de quantidade"].map(ex=>(
-                  <button key={ex} onClick={()=>setInput(ex)} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"4px 10px",color:"#475569",fontSize:10,fontFamily:"inherit",cursor:"pointer"}}>{ex}</button>
+                  <button key={ex} onClick={()=>{if(inputRef.current) inputRef.current.value=ex;}} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"4px 10px",color:"#475569",fontSize:10,fontFamily:"inherit",cursor:"pointer"}}>{ex}</button>
                 ))}
               </div>
             )}
@@ -293,8 +295,6 @@ function LspGeneratorRoute() {
           </div>
         )}
       </div>
-
-      <style>{`@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}textarea::placeholder{color:#334155;}*{box-sizing:border-box;}::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:#0f1117;}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}`}</style>
     </div>
   );
 }
