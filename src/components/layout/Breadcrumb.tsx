@@ -7,7 +7,7 @@ export const Breadcrumb: React.FC = () => {
   const { activeSegment, activeTool, activeClient, activeProject } = useSegment();
 
   return (
-    <nav className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/20 px-4 py-2.5 text-xs font-medium backdrop-blur-md">
+    <nav className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/40 px-4 py-2.5 text-xs font-medium">
       <Link
         to="/app/dashboard"
         className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
@@ -52,7 +52,7 @@ export const Breadcrumb: React.FC = () => {
         <>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 text-indigo-400/80" />
           <span className="flex items-center gap-1 text-foreground font-semibold">
-            <FolderKanban className="h-3 w-3 text-indigo-400 animate-pulse" />
+            <FolderKanban className="h-3 w-3 text-indigo-400" />
             <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
               {activeProject.nome}
             </span>

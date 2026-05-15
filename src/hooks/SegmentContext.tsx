@@ -97,23 +97,25 @@ export const SegmentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return created;
   };
 
+  const value = React.useMemo(() => ({
+    segmentos: mockSegmentos,
+    ferramentas: mockFerramentas,
+    clientes,
+    projetos,
+    activeSegment,
+    activeTool,
+    activeClient,
+    activeProject,
+    setActiveSegmentBySlug,
+    setActiveToolBySlug,
+    setActiveClientBySlug,
+    setActiveProjectById,
+    addCliente,
+    addProjeto
+  }), [clientes, projetos, activeSegment, activeTool, activeClient, activeProject]);
+
   return (
-    <SegmentContext.Provider value={{
-      segmentos: mockSegmentos,
-      ferramentas: mockFerramentas,
-      clientes,
-      projetos,
-      activeSegment,
-      activeTool,
-      activeClient,
-      activeProject,
-      setActiveSegmentBySlug,
-      setActiveToolBySlug,
-      setActiveClientBySlug,
-      setActiveProjectById,
-      addCliente,
-      addProjeto
-    }}>
+    <SegmentContext.Provider value={value}>
       {children}
     </SegmentContext.Provider>
   );
