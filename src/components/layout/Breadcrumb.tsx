@@ -7,7 +7,7 @@ export const Breadcrumb: React.FC = () => {
   const { activeSegment, activeTool, activeClient, activeProject } = useSegment();
 
   return (
-    <nav className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/20 px-4 py-2.5 text-xs font-medium">
+    <nav className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/20 px-4 py-2.5 text-xs font-medium backdrop-blur-md">
       <Link
         to="/app/dashboard"
         className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
