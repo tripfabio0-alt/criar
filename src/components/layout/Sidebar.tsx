@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useSegment } from '../../hooks/SegmentContext';
-import logo from '../../assets/logo.png';
 import { 
   Building2, 
   TrendingUp, 
@@ -39,20 +38,47 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="fixed bottom-0 top-0 left-0 z-30 flex h-full w-[280px] flex-col border-r border-border/40 bg-[#0a0a0f] transition-all duration-300">
+    <aside className="fixed bottom-0 top-0 left-0 z-30 flex h-full w-[280px] flex-col border-r border-border/40 bg-card/10 backdrop-blur-xl transition-all duration-300">
       
       {/* Brand Header */}
       <div className="flex flex-col items-center justify-center border-b border-border/40 p-6">
-        <Link to="/" className="group flex flex-col items-center gap-1">
+        <Link to="/" className="group flex flex-col items-center gap-3">
           <img 
-            src={logo} 
-            alt="Solvix logo" 
-            className="h-[170px] w-[170px] object-contain transition-transform duration-500 group-hover:scale-105" 
+            src="/Logo.png" 
+            alt="Solvix" 
+            className="h-[88px] w-[88px] object-contain transition-transform duration-500 group-hover:scale-110" 
           />
+          <span className="font-outfit text-2xl font-black tracking-[0.15em] text-foreground bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text">
+            SOLVIX PRO
+          </span>
         </Link>
       </div>
 
-
+      {/* Segment Switcher */}
+      <div className="grid grid-cols-2 gap-1 p-4 bg-secondary/20 border-b border-border/40">
+        {segmentos.map((seg) => {
+          const isActive = activeSegment?.slug === seg.slug;
+          return (
+            <button
+              key={seg.id}
+              onClick={() => {
+                setActiveSegmentBySlug(seg.slug);
+                if (seg.slug === 'consultoria') {
+                  navigate({ to: '/app/dashboard' });
+                }
+              }}
+              className={`flex flex-col items-center justify-center py-2.5 rounded-lg border text-[11px] font-bold tracking-wider uppercase transition-all duration-300 ${
+                isActive 
+                  ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.15)]' 
+                  : 'bg-transparent border-transparent text-muted-foreground hover:bg-secondary/40 hover:text-foreground'
+              }`}
+            >
+              <span className="text-lg mb-1">{seg.icone}</span>
+              <span>{seg.nome}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Nav Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -96,10 +122,7 @@ export const Sidebar: React.FC = () => {
                             <button
                               onClick={() => {
                                 setActiveClientBySlug(client.slug);
-                                navigate({ 
-                                  to: '/app/consultoria/senior/$cliente', 
-                                  params: { cliente: client.slug } 
-                                });
+                                navigate({ to: `/app/consultoria/senior/${client.slug}` });
                               }}
                               className={`flex w-full items-center justify-between py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
                                 isClientActive 
@@ -108,7 +131,7 @@ export const Sidebar: React.FC = () => {
                               }`}
                             >
                               <span>{client.nome}</span>
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             </button>
                           </li>
                         );
@@ -132,24 +155,12 @@ export const Sidebar: React.FC = () => {
           <span>Voltar ao Site Principal</span>
         </a>
         <button 
-          onClick={() => {
-            localStorage.removeItem('google_authenticated');
-            window.location.href = '/';
-          }}
-          className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
+          onClick={() => navigate({ to: '/' })}
+          className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-all"
         >
           <LogOut className="h-4 w-4" />
           <span>Sair da Sessão</span>
         </button>
-        
-        <div className="px-3 pt-4 pb-2">
-          <div className="flex items-center justify-between border-t border-border/20 pt-4">
-            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Solvix OS</span>
-            <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-400 border border-indigo-500/20">
-              v2.0.0
-            </span>
-          </div>
-        </div>
       </div>
     </aside>
   );

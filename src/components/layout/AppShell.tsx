@@ -18,7 +18,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <div className="pl-[280px] min-h-screen flex flex-col">
         
         {/* Top Floating App Bar */}
-        <header className="sticky top-0 z-20 flex h-[70px] items-center justify-between border-b border-border/40 bg-[#05050a] px-8">
+        <header className="sticky top-0 z-20 flex h-[70px] items-center justify-between border-b border-border/40 bg-[#05050a]/80 px-8 backdrop-blur-md">
           
           {/* Breadcrumb Area */}
           <Breadcrumb />
@@ -57,7 +57,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </header>
 
         {/* Dynamic Route Viewport Body */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 animate-fade-in">
           {children}
         </main>
       </div>
