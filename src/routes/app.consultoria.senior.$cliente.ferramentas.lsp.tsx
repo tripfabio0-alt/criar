@@ -1,21 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { createFileRoute, Link, useParams } from '@tanstack/react-router';
-import { useSegment } from '../hooks/SegmentContext';
-import { 
-  Terminal, 
-  Sparkles, 
-  Upload, 
-  Trash, 
-  Copy, 
-  Check, 
-  ArrowLeft,
-  FileCode,
-  Layers,
-  HelpCircle,
-  AlertTriangle,
-  Play,
-  RotateCcw
-} from 'lucide-react';
 
 export const Route = createFileRoute('/app/consultoria/senior/$cliente/ferramentas/lsp')({
   component: LspGeneratorRoute,
@@ -71,10 +55,10 @@ O excesso de regras associadas a eventos críticos de gravação (tabela E120PED
 
 function parseResponse(text: string) {
   const get = (tag: string, next: string) => {
-    const start = text.indexOf(`##${tag}##`);
+    const start = text.indexOf(`##\${tag}##`);
     if (start === -1) return '';
     const after = start + tag.length + 4;
-    const end = text.indexOf(`##${next}##`, after);
+    const end = text.indexOf(`##\${next}##`, after);
     return (end === -1 ? text.slice(after) : text.slice(after, end)).trim();
   };
   return {
@@ -115,8 +99,7 @@ function LspGeneratorRoute() {
   const [image, setImage] = useState<{ preview: string; name: string; size: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState('');
-  const [tab, setTab] = useState<'script' | 'variaveis' | 'funcoes' | 'ajuda'>('script');
+  const [tab, setTab] = useState<'script' | 'variaveis'>('script');
   const [copied, setCopied] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [mode, setMode] = useState<'text' | 'image'>('text');
@@ -136,20 +119,18 @@ function LspGeneratorRoute() {
   const generate = () => {
     if (!input.trim() && !image) return;
     setLoading(true);
-    setError('');
     setResult(null);
 
-    // AI Generation simulation
     setTimeout(() => {
       try {
         setResult(parseResponse(MOCK_RESPONSE));
         setTab('script');
       } catch (err: any) {
-        setError(err.message || 'Erro ao processar a regra LSP.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    }, 1500);
+    }, 800);
   };
 
   const copyCode = () => {
@@ -159,322 +140,75 @@ function LspGeneratorRoute() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getLineColor = (line: string) => {
-    const t = line.trim();
-    if (t.startsWith('@')) return 'text-slate-500 italic';
-    if (/^(Definir|Se|FimSe|Enquanto|FimEnquanto)\b/i.test(t)) return 'text-sky-300 font-bold';
-    if (/^[A-Z][a-zA-Z]+\(/.test(t)) return 'text-emerald-300';
-    return 'text-slate-300';
-  };
-
   return (
-    <div className="space-y-8 max-w-5xl">
-      
-      {/* Header and Go Back */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-6">
-        <div className="flex items-center gap-3">
-          <Link
-            to={`/app/consultoria/senior/${cliente}`}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/40 bg-secondary/20 text-muted-foreground hover:text-foreground transition-all"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-amber-500 text-lg">🤖</span>
-              <h1 className="text-xl font-extrabold tracking-tight text-foreground">Gerador de Regra LSP</h1>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Desenvolva regras de processo otimizadas para o ERP Senior.
-            </p>
-          </div>
+    <div className="p-4 space-y-6 max-w-4xl mx-auto text-slate-200">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div>
+          <Link to={`/app/consultoria/senior/\${cliente}`} className="text-slate-500 hover:text-slate-300 mr-4">← Voltar</Link>
+          <h1 className="text-xl font-bold inline-block">Gerador LSP Lite</h1>
         </div>
-
-        <div className="flex items-center gap-1 bg-secondary/15 p-1 rounded-lg border border-border/30">
-          <button
-            onClick={() => setMode('text')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-              mode === 'text' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'text-muted-foreground'
-            }`}
-          >
-            ✏️ Requisito Texto
-          </button>
-          <button
-            onClick={() => setMode('image')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-              mode === 'image' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'text-muted-foreground'
-            }`}
-          >
-            🖼️ Print de Tela
-          </button>
+        <div className="flex gap-2">
+          <button onClick={() => setMode('text')} className={`px-3 py-1 rounded \${mode === 'text' ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Texto</button>
+          <button onClick={() => setMode('image')} className={`px-3 py-1 rounded \${mode === 'image' ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Imagem</button>
         </div>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-12">
-        
-        {/* Left Input Configuration Column */}
-        <div className="md:col-span-5 space-y-6">
-          <div className="rounded-xl border border-border/40 bg-card/50 p-6 space-y-4">
-            <h3 className="text-sm font-bold text-foreground">Definição do Requisito</h3>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+            <h2 className="text-sm font-bold mb-4">Entrada de Dados</h2>
             
-            {/* File drag zone */}
             {mode === 'image' && (
-              <div
-                onDragOver={(e) => { e.preventDefault(); if (!dragOver) setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragOver(false);
-                  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-                }}
-                onClick={() => !image && fileRef.current?.click()}
-                className={`group flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  dragOver ? 'border-amber-500 bg-amber-500/[0.02]' : 'border-border/60 hover:border-amber-500/50 bg-secondary/5'
-                }`}
+              <div 
+                onClick={() => fileRef.current?.click()}
+                className="border-2 border-dashed border-slate-700 p-8 rounded-lg text-center cursor-pointer mb-4 hover:border-amber-500"
               >
-                {image ? (
-                  <div className="relative w-full">
-                    <img src={image.preview} alt="Upload" className="max-h-40 mx-auto rounded-lg object-contain bg-black" />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setImage(null); }}
-                      className="absolute top-2 right-2 flex items-center gap-1 rounded bg-rose-950/80 border border-rose-500/30 px-2 py-1 text-[10px] text-rose-300 font-bold hover:bg-rose-900"
-                    >
-                      <Trash className="h-3 w-3" />
-                      <span>Remover</span>
-                    </button>
-                    <p className="text-[10px] text-muted-foreground mt-3">{image.name} ({image.size})</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary/30 text-muted-foreground group-hover:scale-110 transition-all">
-                      <Upload className="h-5 w-5" />
-                    </div>
-                    <p className="text-xs font-bold">Arraste a captura de tela aqui</p>
-                    <p className="text-[10px] text-muted-foreground">PNG, JPG, JPEG até 5MB</p>
-                  </div>
-                )}
-              </div>
-            )}
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Descrição da Lógica do Negócio</label>
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate(); }}
-                placeholder={
-                  mode === 'image' 
-                    ? 'Ex: Quero validar se a quantidade de faturamento na tela é maior que zero...' 
-                    : 'Ex: Quero bloquear o pedido de venda se o cliente estiver inadimplente...'
-                }
-                className="w-full h-32 rounded-lg border border-border/40 bg-secondary/10 px-4 py-3 text-xs text-foreground outline-none focus:border-amber-500/40 focus:bg-secondary/20 resize-none leading-relaxed"
-              />
-            </div>
-
-            {/* Presets */}
-            {mode === 'text' && (
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide block">Exemplos Rápidos</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    'Bloquear faturamento por limite de crédito',
-                    'Logar alterações de preços críticos',
-                    'Alerta de estoque mínimo PCP'
-                  ].map((ex) => (
-                    <button
-                      key={ex}
-                      onClick={() => setInput(ex)}
-                      className="text-[10px] font-medium border border-border/30 bg-secondary/25 px-2.5 py-1 rounded hover:bg-secondary/40 transition-all"
-                    >
-                      {ex}
-                    </button>
-                  ))}
-                </div>
+                {image ? <img src={image.preview} className="max-h-32 mx-auto" /> : "Clique para upload de imagem"}
+                <input ref={fileRef} type="file" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
               </div>
             )}
 
-            <button
+            <textarea 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Descreva a regra aqui..."
+              className="w-full h-40 bg-slate-950 border border-slate-800 rounded p-3 text-sm outline-none focus:border-amber-600 transition-none"
+            />
+
+            <button 
               onClick={generate}
-              disabled={loading || (!input.trim() && !image)}
-              className={`w-full flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold transition-all ${
-                loading || (!input.trim() && !image)
-                  ? 'bg-secondary/20 text-muted-foreground border border-border/20 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:scale-[1.02]'
-              }`}
+              disabled={loading}
+              className="w-full bg-amber-600 text-white py-3 rounded-lg font-bold mt-4 disabled:opacity-50"
             >
-              {loading ? (
-                <>
-                  <RotateCcw className="h-4 w-4 animate-spin" />
-                  <span>Analisando Regras com Gemini...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>Gerar Código LSP</span>
-                </>
-              )}
+              {loading ? "Processando..." : "GERAR REGRA"}
             </button>
           </div>
         </div>
 
-        {/* Right Output Block Column */}
-        <div className="md:col-span-7">
+        <div>
           {result ? (
-            <div className="space-y-6">
+            <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+              <div className="flex border-b border-slate-800 mb-4">
+                <button onClick={() => setTab('script')} className={`px-4 py-2 text-xs font-bold \${tab === 'script' ? 'border-b-2 border-amber-500 text-amber-500' : 'text-slate-500'}`}>SCRIPT</button>
+                <button onClick={() => setTab('variaveis')} className={`px-4 py-2 text-xs font-bold \${tab === 'variaveis' ? 'border-b-2 border-amber-500 text-amber-500' : 'text-slate-500'}`}>VARIÁVEIS</button>
+              </div>
               
-              {/* Header Info Banner */}
-              <div className="grid grid-cols-2 gap-4 rounded-xl border border-border/40 bg-card/50 p-5">
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Título da Regra</span>
-                  <span className="text-xs font-bold text-foreground">{result.titulo}</span>
+              {tab === 'script' && (
+                <div className="relative">
+                   <button onClick={copyCode} className="absolute top-0 right-0 text-[10px] bg-slate-800 px-2 py-1 rounded">{copied ? 'Copiado!' : 'Copiar'}</button>
+                   <pre className="text-xs font-mono bg-black p-4 rounded overflow-x-auto whitespace-pre-wrap">{result.script}</pre>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Módulo</span>
-                  <span className="text-xs font-bold text-amber-400">{result.modulo}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Identificador</span>
-                  <span className="text-xs font-semibold text-slate-400 font-mono">{result.identificador}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground block uppercase">Descrição</span>
-                  <span className="text-xs text-slate-400 line-clamp-1">{result.descricao}</span>
-                </div>
-              </div>
- 
-              {/* Tabs Output Selector */}
-              <div className="rounded-xl border border-border/40 bg-[#0f111a]/95 overflow-hidden">
-                <div className="flex border-b border-border/30 bg-card/10 px-4 gap-1">
-                  {[
-                    { id: 'script', label: '📄 SCRIPT LSP' },
-                    { id: 'variaveis', label: '🔤 VARIÁVEIS' },
-                    { id: 'funcoes', label: '⚙️ FUNÇÕES' },
-                    { id: 'ajuda', label: '💡 RECOMENDAÇÕES' },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setTab(t.id as any)}
-                      className={`px-4 py-3 text-xs font-bold transition-all border-b-2 ${
-                        tab === t.id
-                          ? 'border-amber-500 text-amber-500'
-                          : 'border-transparent text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Script Display */}
-                {tab === 'script' && (
-                  <div className="relative p-6 font-mono text-xs overflow-x-auto max-h-[400px]">
-                    <button
-                      onClick={copyCode}
-                      className={`absolute top-4 right-4 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold transition-all ${
-                        copied 
-                          ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-400' 
-                          : 'bg-secondary/40 border-border/40 text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      <span>{copied ? 'Copiado!' : 'Copiar'}</span>
-                    </button>
-
-                    <pre className="space-y-1.5 pr-20">
-                      {result.script.split('\n').map((line: string, i: number) => (
-                        <div key={i} className="flex items-start">
-                          <span className="text-[10px] text-slate-600 select-none w-8 mr-4 text-right">{i + 1}</span>
-                          <span className={getLineColor(line)}>{line}</span>
-                        </div>
-                      ))}
-                    </pre>
-                  </div>
-                )}
-
-                {/* Variables Display */}
-                {tab === 'variaveis' && (
-                  <div className="p-6">
-                    <table className="w-full text-xs text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-border/40 text-muted-foreground">
-                          <th className="py-2.5 font-bold uppercase tracking-wider">Variável</th>
-                          <th className="py-2.5 font-bold uppercase tracking-wider text-center">Tipo</th>
-                          <th className="py-2.5 font-bold uppercase tracking-wider">Descrição</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {result.variaveis.map((v: any, i: number) => (
-                          <tr key={i} className="border-b border-border/20 font-medium">
-                            <td className="py-3 text-emerald-400 font-mono font-bold">{v.nome}</td>
-                            <td className="py-3 text-center">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                v.tipo === 'Alfa' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'
-                              }`}>
-                                {v.tipo}
-                              </span>
-                            </td>
-                            <td className="py-3 text-muted-foreground">{v.descricao}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Functions Display */}
-                {tab === 'funcoes' && (
-                  <div className="p-6 space-y-4">
-                    {result.funcoes.map((f: any, i: number) => (
-                      <div key={i} className="flex gap-4 p-4 rounded-xl border border-border/40 bg-secondary/10">
-                        <span className="text-amber-500 font-bold font-mono text-xs">{f.nome}()</span>
-                        <p className="text-muted-foreground text-xs leading-relaxed">{f.descricao}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Recommendations Display */}
-                {tab === 'ajuda' && (
-                  <div className="p-6 space-y-6">
-                    {result.atencao && (
-                      <div className="flex gap-3 p-4 rounded-xl border border-rose-500/20 bg-rose-500/[0.02]">
-                        <AlertTriangle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wide block mb-1">Ponto de Atenção</span>
-                          <p className="text-xs text-rose-300/90 leading-relaxed">{result.atencao}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-3">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block">Dicas de Homologação</span>
-                      {result.dicas.map((d: string, i: number) => (
-                        <div key={i} className="flex gap-3 p-3 rounded-xl border border-border/30 bg-secondary/5 text-xs text-muted-foreground leading-relaxed">
-                          <span className="text-amber-500 font-bold">{i + 1}.</span>
-                          <p>{d}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              </div>
+              )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center border border-dashed border-border/40 rounded-xl h-[450px] p-6 text-center backdrop-blur-md">
-              <Terminal className="h-10 w-10 text-muted-foreground/30 mb-4" />
-              <h4 className="font-bold text-foreground mb-1">Aguardando Parâmetros</h4>
-              <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
-                Insira as diretrizes do negócio ou faça o upload de uma imagem no painel lateral e clique em <strong className="text-amber-500">Gerar Código</strong>.
-              </p>
+            <div className="border border-dashed border-slate-800 rounded-lg h-64 flex items-center justify-center text-slate-600">
+              Aguardando entrada...
             </div>
           )}
         </div>
-
       </div>
-
     </div>
   );
 }
+
 export default LspGeneratorRoute;
