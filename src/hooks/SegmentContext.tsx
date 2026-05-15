@@ -56,10 +56,10 @@ export const SegmentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const tool = mockFerramentas.find(f => f.slug === toolSlug) || null;
     const client = clientSlug ? (clientesRef.current.find(c => c.slug === clientSlug) || null) : null;
 
-    if (seg) setActiveSegment(prev => prev?.id === seg.id ? prev : seg);
-    if (tool) setActiveTool(prev => prev?.id === tool.id ? prev : tool);
-    if (client) setActiveClient(prev => prev?.id === client.id ? prev : client);
-    setActiveProject(prev => prev === null ? prev : null);
+    if (seg && activeSegment?.id !== seg.id) setActiveSegment(seg);
+    if (tool && activeTool?.id !== tool.id) setActiveTool(tool);
+    if (client && activeClient?.id !== client.id) setActiveClient(client);
+    if (activeProject !== null) setActiveProject(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

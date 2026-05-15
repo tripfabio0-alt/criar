@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createFileRoute, Link, useParams } from '@tanstack/react-router';
-import { useSegment } from '../hooks/SegmentContext';
 import { 
   Terminal, 
   Sparkles, 
@@ -110,7 +109,6 @@ function parseResponse(text: string) {
 
 function LspGeneratorRoute() {
   const { cliente } = useParams({ from: '/app/consultoria/senior/$cliente/ferramentas/lsp' });
-  const { activeClient } = useSegment();
 
   const [input, setInput] = useState('');
   const [image, setImage] = useState<{ preview: string; name: string; size: string } | null>(null);
@@ -183,7 +181,7 @@ function LspGeneratorRoute() {
               <h1 className="text-xl font-extrabold tracking-tight text-foreground">Gerador de Regra LSP</h1>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Desenvolva regras de processo otimizadas para {activeClient?.nome || 'o cliente'}.
+              Desenvolva regras de processo otimizadas para o cliente <span className="text-amber-500 font-bold uppercase">{cliente}</span>.
             </p>
           </div>
         </div>
