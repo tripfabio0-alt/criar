@@ -28,12 +28,7 @@ function ClienteWorkspaceRoute() {
 
   const [activeTab, setActiveTab] = useState<'projetos' | 'chamados' | 'ferramentas'>('ferramentas'); // Default to ferramentas as user requested
 
-  // Load client from slug
-  useEffect(() => {
-    if (cliente && activeClient?.slug !== cliente) {
-      setRouteState('consultoria', 'senior', cliente);
-    }
-  }, [cliente, setRouteState, activeClient?.slug]);
+  // useEffect removed to stop sync loop and freeze
 
   if (!activeClient) {
     return (

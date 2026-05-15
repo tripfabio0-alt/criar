@@ -124,12 +124,7 @@ function LspGeneratorRoute() {
   
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // Only update route state if the active client actually changed or isn't set yet
-    if (cliente && activeClient?.slug !== cliente) {
-      setRouteState('consultoria', 'senior', cliente);
-    }
-  }, [cliente, setRouteState, activeClient?.slug]);
+  // useEffect removed to stop sync loop and freeze
 
   const handleFile = (file: File) => {
     if (!file || !file.type.startsWith('image/')) return;
