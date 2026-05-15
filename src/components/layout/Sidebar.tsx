@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
                               }`}
                             >
                               <span>{client.nome}</span>
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                             </button>
                           </li>
                         );

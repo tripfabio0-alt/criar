@@ -257,8 +257,9 @@ function LspGeneratorRoute() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate(); }}
-                placeholder={mode === 'image' ? "Ex: Analise este print e descreva o que deseja validar..." : "Ex: Quero bloquear o pedido de venda se o cliente estiver inadimplente..."}
-                className="w-full h-32 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300 outline-none focus:border-amber-500/50 resize-none"
+                spellCheck={false}
+                placeholder={mode === 'image' ? "Descreva o que deseja..." : "Descreva a lógica..."}
+                className="w-full h-32 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300 outline-none resize-none"
               />
             </div>
 
