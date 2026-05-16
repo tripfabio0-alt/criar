@@ -153,9 +153,19 @@
     box-shadow: var(--shadow-glow);
   }
   .glass-card {
-    background: oklch(0.17 0.045 270 / 70%);
-    backdrop-filter: blur(12px);
-    border: 1px solid oklch(0.4 0.08 270 / 30%);
+    background: oklch(0.15 0.04 270 / 95%);
+    border: 1px solid oklch(0.4 0.08 270 / 20%);
+    contain: paint; /* Isola a renderização */
+  }
+  .glass-card:focus-within {
+    background: oklch(0.12 0.03 270);
+  }
+  input, textarea {
+    contain: paint;
+  }
+  input:focus, textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
   .hero-glowing-cube {
     filter: drop-shadow(0 0 35px oklch(0.7 0.2 255 / 0.25));

@@ -9,7 +9,7 @@ interface AppShellProps {
 
 // Header estático — sem estado, nunca re-renderiza sozinho
 const AppHeader = memo(() => (
-  <header className="sticky top-0 z-20 flex h-[70px] items-center justify-between border-b border-border/40 bg-[#05050a]/80 px-8 backdrop-blur-md">
+  <header className="sticky top-0 z-20 flex h-[70px] items-center justify-between border-b border-border/40 bg-[#07070c] px-8">
     <Breadcrumb />
     <div className="flex items-center gap-4">
       <div className="relative hidden md:block">
