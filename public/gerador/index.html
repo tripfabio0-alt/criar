@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solvix Pro - Engenharia Senior</title>
+    <title>Solvix LSP - Engenharia Sênior</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -12,25 +12,13 @@
             --card: #0d0d1a;
             --border: #1e1e2d;
             --primary: #6366f1;
-            --accent: #10b981;
+            --accent: #818cf8;
             --text: #ffffff;
             --muted: #8b949e;
-            --gradient-radial: radial-gradient(circle at center, #1e1e2d 0%, #05050a 100%);
+            --gradient-radial: radial-gradient(circle at center, #111827 0%, #05050a 100%);
         }
 
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            padding: 0;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         .bg-glow { pointer-events: none; position: fixed; inset: 0; z-index: -10; background: var(--gradient-radial); }
         h1, h2, h3, .logo-text, .font-outfit { font-family: 'Outfit', sans-serif; }
 
@@ -44,100 +32,51 @@
         .btn-panel { background: rgba(26, 26, 46, 0.4); border: 1px solid var(--border); padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--text); text-decoration: none; backdrop-filter: blur(8px); transition: background 0.2s; }
         .btn-panel:hover { background: rgba(26, 26, 46, 0.8); }
 
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 24px; flex: 1; width: 100%; box-sizing: border-box; }
+        .container { max-width: 1280px; margin: 20px auto; padding: 0 24px; flex: 1; width: 100%; box-sizing: border-box; }
+        
+        .input-section { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; padding: 32px; margin-bottom: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .input-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; display: flex; align-items: center; gap: 10px; letter-spacing: 1.5px; margin: 0; }
+        
+        textarea { width: 100%; height: 100px; background: transparent; border: none; color: var(--text); font-size: 18px; resize: none; outline: none; font-weight: 300; }
+        .context-area { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .actions { display: flex; justify-content: space-between; items-center: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 24px; }
 
-        .input-section {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 32px;
-            margin-bottom: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
+        .btn-generate { background: linear-gradient(to right, #6366f1, #4f46e5); color: white; border: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: transform 0.2s; font-size: 14px; }
+        .btn-clear { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 14px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .btn-example { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
-        .label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; letter-spacing: 1.5px; }
+        /* Novo Layout de Resultados */
+        .results-grid { display: grid; grid-template-columns: 400px 1fr; gap: 24px; display: none; margin-top: 24px; }
+        .side-panel { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; }
+        .main-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; }
 
-        textarea {
-            width: 100%;
-            height: 100px;
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 18px;
-            resize: none;
-            outline: none;
-            padding: 0;
-            margin-top: 10px;
-            font-weight: 300;
-        }
+        .panel-header { padding: 20px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); font-family: 'Outfit'; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .panel-body { padding: 24px; font-size: 14px; color: var(--muted); overflow-y: auto; max-height: 600px; }
 
-        .actions { display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 24px; }
-
-        .btn-generate {
-            background: linear-gradient(to right, #6366f1, #a855f7);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.2s;
-            font-size: 14px;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-        .btn-generate:hover { transform: scale(1.02); }
-        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* TABS SYSTEM */
         .tab-container { display: flex; gap: 4px; padding: 8px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
-        .tab { 
-            padding: 12px 24px; 
-            border-radius: 8px; 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: var(--muted); 
-            cursor: pointer; 
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .tab { padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .tab:hover { background: rgba(255,255,255,0.05); color: var(--text); }
-        .tab.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
-
-        .tab-content { display: none; padding: 0; }
+        .tab.active { background: var(--primary); color: white; }
+        
+        .tab-content { display: none; }
         .tab-content.active { display: block; }
-
-        .result-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; overflow: hidden; margin-top: 20px; }
-        .result-header { padding: 20px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .result-body { padding: 24px; font-size: 15px; }
-
+        .code-container { background: #010409; padding: 24px; min-height: 400px; }
         pre { margin: 0; white-space: pre-wrap; font-family: 'Fira Code', monospace; color: #a5d6ff; line-height: 1.6; font-size: 13px; }
-        .explanation-text { color: var(--muted); white-space: pre-wrap; }
 
-        .btn-copy { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; }
-        .btn-copy:hover { background: var(--border); }
+        .btn-copy { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
         .footer { border-top: 1px solid var(--border); background: rgba(13, 13, 26, 0.3); padding: 48px 0; margin-top: 60px; }
-        .footer-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: grid; gap: 40px; grid-template-columns: repeat(1, 1fr); }
-        @media (min-width: 768px) { .footer-container { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .footer-container { grid-template-columns: repeat(5, 1fr); } }
-        .footer-logo-wrap { display: flex; align-items: center; gap: 16px; }
-        .footer-logo-wrap img { height: 64px; width: 64px; }
+        .footer-logo-wrap { display: flex; align-items: center; gap: 16px; max-width: 1280px; margin: 0 auto; padding: 0 24px; }
         .footer-logo-text { font-size: 36px; font-weight: 800; letter-spacing: 0.1em; font-family: 'Outfit'; }
         
-        .loading-shimmer { height: 200px; background: linear-gradient(90deg, var(--card) 25%, #1e1e2d 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px; display: none; }
+        .loading-shimmer { height: 300px; background: linear-gradient(90deg, var(--card) 25%, #1e1e2d 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px; display: none; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .error-toast { background: #450a0a; border: 1px solid #991b1b; color: #fecaca; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; display: none; }
     </style>
 </head>
 <body>
     <div class="bg-glow"></div>
-
     <header class="navbar">
         <a href="/" style="display: flex; align-items: center;">
             <img src="/Logo.png" alt="Solvix" class="logo-img" />
@@ -157,23 +96,30 @@
 
     <div class="container">
         <div class="error-toast" id="error-toast"></div>
+        
         <div class="input-section">
-            <div class="label"><i data-lucide="zap"></i> Requisitar Inteligência de Engenharia</div>
+            <div class="input-header">
+                <div class="label"><i data-lucide="zap"></i> Requisitar Inteligência de Engenharia</div>
+                <button onclick="loadExample()" class="btn-example">
+                    <i data-lucide="lightbulb" style="width: 14px;"></i> Ver Exemplo de Engenharia
+                </button>
+            </div>
+            
             <textarea id="prompt" placeholder="Descreva a regra de negócio ou lógica desejada..."></textarea>
             
-            <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+            <div class="context-area">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div class="label" style="color: var(--muted); margin-bottom: 0;"><i data-lucide="layout"></i> Contexto da Tela (Opcional)</div>
+                    <div class="label" style="color: var(--muted); font-size: 10px;"><i data-lucide="layout"></i> Contexto de Tabelas/Campos (Opcional)</div>
                     <button id="suggest-ctx-btn" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;">
                         <i data-lucide="sparkles" style="width: 12px;"></i> SUGERIR CONTEXTO
                     </button>
                 </div>
-                <textarea id="context" style="height: 60px; font-size: 14px;" placeholder="Cole aqui campos da tela, variáveis disponíveis ou metadados para maior precisão..."></textarea>
+                <textarea id="context" style="height: 60px; font-size: 14px;" placeholder="Cole aqui ou use a sugestão mágica..."></textarea>
             </div>
 
-            <div class="actions" style="justify-content: space-between; align-items: center;">
-                <button onclick="loadExample()" style="background: none; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="lightbulb" style="width: 14px;"></i> Ver Exemplo de Engenharia
+            <div class="actions">
+                <button onclick="clearScreen()" class="btn-clear">
+                    <i data-lucide="trash-2" style="width: 16px;"></i> Limpar Tela
                 </button>
                 <button id="generate-btn" class="btn-generate">
                     Gerar Solução Completa <i data-lucide="arrow-right" style="width: 16px;"></i>
@@ -183,98 +129,56 @@
 
         <div id="loading" class="loading-shimmer"></div>
 
-        <div id="results-area" style="display: none;">
-            <div class="result-card">
-                <div class="tab-container">
-                    <div class="tab active" onclick="showTab('mapa')"><i data-lucide="map"></i> Fase 1: Mapa</div>
-                    <div class="tab" onclick="showTab('sql')"><i data-lucide="database"></i> Fase 2: SQL</div>
-                    <div class="tab" onclick="showTab('lsp')"><i data-lucide="code"></i> Fase 3: LSP</div>
+        <div id="results-area" class="results-grid">
+            <!-- Painel Esquerdo: Mapa e Contexto Técnico -->
+            <div class="side-panel">
+                <div class="panel-header" style="color: var(--accent);">
+                    <i data-lucide="map"></i> FASE 1: MAPA E ESTRUTURA
                 </div>
-                
-                <div id="tab-mapa" class="tab-content active">
-                    <div class="result-header"><div class="label" style="margin:0;"><i data-lucide="info"></i> Roadmap da Solução</div></div>
-                    <div class="result-body"><div id="mapa-content" class="explanation-text"></div></div>
+                <div class="panel-body">
+                    <div style="font-weight: 700; color: white; margin-bottom: 8px; font-size: 12px;">📍 ROADMAP DE IMPLANTAÇÃO</div>
+                    <div id="mapa-content" style="white-space: pre-wrap; margin-bottom: 24px;"></div>
+                    
+                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 8px; border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px;">🔍 CONTEXTO TÉCNICO UTILIZADO</div>
+                    <div id="context-used" style="white-space: pre-wrap; color: #a5d6ff; font-family: 'Fira Code', monospace; font-size: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;"></div>
+                </div>
+            </div>
+
+            <!-- Painel Direito: Códigos SQL e LSP -->
+            <div class="main-panel">
+                <div class="tab-container">
+                    <div class="tab active" onclick="showTab('sql')"><i data-lucide="database"></i> FASE 2: SQL</div>
+                    <div class="tab" onclick="showTab('lsp')"><i data-lucide="code"></i> FASE 3: LSP</div>
                 </div>
 
-                <div id="tab-sql" class="tab-content">
-                    <div class="result-header">
-                        <div class="label" style="margin:0; color: #3b82f6;"><i data-lucide="terminal"></i> Scripts de Banco (SQL)</div>
+                <div id="tab-sql" class="tab-content active">
+                    <div class="result-header" style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--muted);">SCRIPT DE BANCO DE DADOS</span>
                         <button class="btn-copy" onclick="copyContent('sql-content')"><i data-lucide="copy"></i> Copiar SQL</button>
                     </div>
-                    <div class="result-body" style="background: #010409;"><pre id="sql-content"></pre></div>
+                    <div class="code-container"><pre id="sql-content"></pre></div>
                 </div>
 
                 <div id="tab-lsp" class="tab-content">
-                    <div class="result-header">
-                        <div class="label" style="margin:0; color: #10b981;"><i data-lucide="terminal"></i> Regras de Negócio (LSP)</div>
+                    <div class="result-header" style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--muted);">REGRA DE NEGÓCIO SENIOR</span>
                         <button class="btn-copy" onclick="copyContent('lsp-content')"><i data-lucide="copy"></i> Copiar LSP</button>
                     </div>
-                    <div class="result-body" style="background: #010409;"><pre id="lsp-content"></pre></div>
+                    <div class="code-container"><pre id="lsp-content"></pre></div>
                 </div>
             </div>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-logo-wrap">
-                <img src="/Logo.png" alt="" />
-                <span class="footer-logo-text">SOLVIX</span>
-            </div>
-            <p style="grid-column: span 2; color: var(--muted); font-size: 14px;">Inteligência Artificial aplicada a desafios operacionais complexos no ecossistema Senior.</p>
+        <div class="footer-logo-wrap">
+            <img src="/Logo.png" alt="" />
+            <span class="footer-logo-text">SOLVIX</span>
         </div>
     </footer>
 
     <script>
         lucide.createIcons();
-
-        function loadExample() {
-            promptInput.value = "Cálculo de comissão variável com validação de margem de lucro";
-            document.getElementById('context').value = "Tabelas: E120PED (Pedidos), E045VEN (Vendedores)\nCampos: VlrLiq (Valor Líquido), PerCom (Percentual)";
-            
-            resultsArea.style.display = "block";
-            document.getElementById('mapa-content').innerText = `📍 FASE 1: ROADMAP DE IMPLANTAÇÃO (ARQUITETURA)
-
-1. PONTO DE ENTRADA:
-   - Tela: Mercado > Gestão de Vendas > Comissões > Cálculo (F120COM).
-   - Identificador de Regra: VEN-120CALC01 (Personalização do Cálculo de Comissões).
-
-2. CONFIGURAÇÃO DE SISTEMA:
-   - Habilitar o parâmetro "Cálculo por Regra LSP" no Cadastro de Filiais.
-
-3. FLUXO DA SOLUÇÃO:
-   - Passo A: O sistema aciona a Regra LSP no momento do processamento.
-   - Passo B: O SQL busca a margem de lucro real dos itens do pedido.
-   - Passo C: A regra LSP aplica o redutor se a margem for inferior a 15%.`;
-
-            document.getElementById('sql-content').innerText = `-- FASE 2: INTELIGÊNCIA DE DADOS (SQL)
-SELECT 
-    AVG(PERMAR) AS MARGEM_MEDIA 
-FROM 
-    E120IPD 
-WHERE 
-    CODEMP = :CodEmp AND 
-    CODFIL = :CodFil AND 
-    NUMPED = :NumPed;`;
-
-            document.getElementById('lsp-content').innerText = `@ FASE 3: ENGENHARIA DE REGRAS (LSP) @
-Definir Numero vMargem;
-Definir Numero vComissaoOriginal;
-
-@ Executa Consulta SQL da Fase 2 @
-vMargem = SQL_BuscaMargemMedia(vNumPed);
-
-@ Lógica de Negócio @
-Se (vMargem < 15)
-Inicio
-    vComissaoOriginal = vComissaoOriginal * 0.50; @ Reduz 50% da comissão @
-    GeraLog("Comissão reduzida por baixa margem de lucro.");
-Fim;
-
-FinalizarRegra();`;
-            showTab('mapa');
-            lucide.createIcons();
-        }
 
         function logout() {
             localStorage.removeItem('google_authenticated');
@@ -282,10 +186,15 @@ FinalizarRegra();`;
             window.location.href = '/';
         }
 
+        function clearScreen() {
+            if(confirm("Deseja limpar todos os campos e resultados?")) {
+                window.location.reload();
+            }
+        }
+
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
             document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
             document.getElementById(`tab-${tabName}`).classList.add('active');
         }
@@ -293,26 +202,36 @@ FinalizarRegra();`;
         function copyContent(id) {
             const text = document.getElementById(id).innerText;
             navigator.clipboard.writeText(text);
-            alert("Copiado para a área de transferência!");
+            alert("Copiado com sucesso!");
         }
-        
+
+        function loadExample() {
+            promptInput.value = "Cálculo de comissão variável com validação de margem de lucro";
+            contextInput.value = "Tabelas: E120PED (Pedidos), E045VEN (Vendedores)\nCampos: VlrLiq (Valor Líquido), PerCom (Percentual)";
+            
+            resultsArea.style.display = "grid";
+            document.getElementById('mapa-content').innerText = `1. PONTO DE ENTRADA:\n- Tela: Mercado > Gestão de Vendas > Comissões > Cálculo (F120COM).\n- Identificador de Regra: VEN-120CALC01.\n\n2. CONFIGURAÇÃO:\n- Habilitar o parâmetro "Cálculo por Regra LSP" no Cadastro de Filiais.\n\n3. FLUXO:\n- Passo A: O sistema aciona a Regra LSP.\n- Passo B: O SQL busca a margem de lucro real.\n- Passo C: A regra aplica o redutor de 15%.`;
+            document.getElementById('context-used').innerText = contextInput.value;
+            document.getElementById('sql-content').innerText = `SELECT AVG(PERMAR) AS MARGEM FROM E120IPD WHERE NUMPED = :NumPed;`;
+            document.getElementById('lsp-content').innerText = `@ Regra de Comissão @\nvMargem = SQL_BuscaMargem(vNumPed);\nSe (vMargem < 15) vComissao = vComissao * 0.5;`;
+            showTab('sql');
+            lucide.createIcons();
+        }
+
         const btn = document.getElementById('generate-btn');
+        const suggestCtxBtn = document.getElementById('suggest-ctx-btn');
         const promptInput = document.getElementById('prompt');
+        const contextInput = document.getElementById('context');
         const resultsArea = document.getElementById('results-area');
         const loading = document.getElementById('loading');
         const errorToast = document.getElementById('error-toast');
 
-        const suggestCtxBtn = document.getElementById('suggest-ctx-btn');
-        const contextInput = document.getElementById('context');
-
         suggestCtxBtn.addEventListener('click', async () => {
             const text = promptInput.value.trim();
             if (!text) { alert("Digite algo no prompt primeiro!"); return; }
-            
             suggestCtxBtn.disabled = true;
             suggestCtxBtn.innerHTML = '<i class="animate-spin" data-lucide="loader-2"></i>';
             lucide.createIcons();
-
             try {
                 const response = await fetch('/api/gerar-sql', {
                     method: 'POST',
@@ -321,9 +240,8 @@ FinalizarRegra();`;
                 });
                 const data = await response.json();
                 contextInput.value = data.resultado.trim();
-            } catch (err) {
-                console.error(err);
-            } finally {
+            } catch (err) { console.error(err); }
+            finally {
                 suggestCtxBtn.disabled = false;
                 suggestCtxBtn.innerHTML = '<i data-lucide="sparkles" style="width: 12px;"></i> SUGERIR CONTEXTO';
                 lucide.createIcons();
@@ -332,7 +250,7 @@ FinalizarRegra();`;
 
         btn.addEventListener('click', async () => {
             const text = promptInput.value.trim();
-            const context = document.getElementById('context').value.trim();
+            const context = contextInput.value.trim();
             if (!text) return;
             
             const fullPrompt = context ? `REQUISITO: ${text}\nCONTEXTO DA TELA: ${context}` : text;
@@ -366,20 +284,19 @@ FinalizarRegra();`;
                     return content || fallback;
                 };
 
-                document.getElementById('mapa-content').innerText = getTag("MAPA", "📍 Mapa de implementação não disponível para esta consulta.");
-                document.getElementById('sql-content').innerText = getTag("SQL", "-- Nenhum script SQL necessário para esta fase.");
-                document.getElementById('lsp-content').innerText = getTag("LSP", "@ Nenhuma regra LSP necessária para esta fase.");
+                document.getElementById('mapa-content').innerText = getTag("MAPA", "📍 Mapa de implementação não disponível.");
+                document.getElementById('context-used').innerText = context || "Nenhum contexto adicional fornecido.";
+                document.getElementById('sql-content').innerText = getTag("SQL", "-- Nenhum script SQL necessário.");
+                document.getElementById('lsp-content').innerText = getTag("LSP", "@ Nenhuma regra LSP necessária.");
 
                 loading.style.display = "none";
-                resultsArea.style.display = "block";
-                showTab('mapa'); // Inicia sempre no mapa
+                resultsArea.style.display = "grid";
+                showTab('sql');
             } catch (err) {
                 loading.style.display = "none";
                 errorToast.innerText = "Erro: " + err.message;
                 errorToast.style.display = "block";
-            } finally {
-                btn.disabled = false;
-            }
+            } finally { btn.disabled = false; }
         });
     </script>
 </body>
