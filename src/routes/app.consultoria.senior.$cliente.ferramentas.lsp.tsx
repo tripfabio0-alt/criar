@@ -75,6 +75,8 @@ function App() {
   const [mode,setMode]=useState("text");
   const fileRef=useRef<HTMLInputElement>(null);
 
+  console.log("LspGenerator Rendered - State:", { loading, hasResult: !!result, tab, mode });
+
   const handleFile=async(file: File)=>{
     if(!file||!file.type.startsWith("image/"))return;
     const base64=await fileToBase64(file);
@@ -95,8 +97,10 @@ function App() {
         messages=[{role:"user",content:currentInput.trim()}];
       }
       
-      const SUPABASE_URL = 'https://dvvjcewohzbtgtotlbbv.supabase.co';
-      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sua-anon-key-jwt-aqui';
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dvvjcewohzbtgtotlbbv.supabase.co';
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_r4QQOZU3uyKdKw9sZxQ9UQ_2R0JFmdo';
+
+      console.log("Iniciando geração...", { inputLength: currentInput.length, hasImage: !!image });
 
       const res=await fetch(SUPABASE_URL + "/functions/v1/anthropic-proxy", {
         method:"POST",
@@ -295,7 +299,7 @@ function App() {
         )}
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: "@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}textarea::placeholder{color:#334155;}*{box-sizing:border-box;}::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:#0f1117;}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}textarea::placeholder{color:#334155;}::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:#0f1117;}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}" }} />
     </div>
   );
 }
