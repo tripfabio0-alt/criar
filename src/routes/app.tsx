@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
 import { SegmentProvider } from '../hooks/SegmentContext';
 import { AppShell } from '../components/layout/AppShell';
 import { useState, useEffect } from 'react';
@@ -104,11 +104,20 @@ function AppLayout() {
     );
   }
 
+  const location = useLocation();
+  const isToolPage = location.pathname.includes('/ferramentas/');
+
   return (
     <SegmentProvider>
-      <AppShell>
-        <Outlet />
-      </AppShell>
+      {isToolPage ? (
+        <div className="min-h-screen bg-[#05050a]">
+          <Outlet />
+        </div>
+      ) : (
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      )}
     </SegmentProvider>
   );
 }

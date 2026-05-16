@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState, useRef } from 'react';
 
 export const Route = createFileRoute('/app/consultoria/senior/$cliente/ferramentas/lsp')({
@@ -59,9 +59,14 @@ function LspZeroRenderGenerator() {
 
   return (
     <div style={styles.container}>
-      <div style={{ marginBottom: '25px' }}>
-        <h1 style={{ color: '#f0f6fc', fontSize: '20px', fontWeight: 600 }}>Gerador LSP</h1>
-        <p style={{ color: '#8b949e', fontSize: '12px' }}>Modo de Performance Isolada (Zero Lag)</p>
+      <div style={{ marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <h1 style={{ color: '#f0f6fc', fontSize: '20px', fontWeight: 600 }}>Gerador LSP</h1>
+          <p style={{ color: '#8b949e', fontSize: '12px' }}>Modo de Isolamento Total (Máxima Performance)</p>
+        </div>
+        <Link to="/app/dashboard" style={{ color: '#8b949e', fontSize: '12px', textDecoration: 'none', border: '1px solid #30363d', padding: '5px 12px', borderRadius: '6px' }}>
+          ← Voltar ao Dashboard
+        </Link>
       </div>
 
       <div style={styles.card}>
