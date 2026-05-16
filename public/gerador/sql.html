@@ -11,7 +11,7 @@
             --bg: #05050a;
             --card: #0d0d1a;
             --border: #1e1e2d;
-            --primary: #3b82f6; /* Blue for SQL */
+            --primary: #3b82f6;
             --accent: #60a5fa;
             --text: #ffffff;
             --muted: #8b949e;
@@ -38,29 +38,27 @@
         textarea { width: 100%; height: 100px; background: transparent; border: none; color: var(--text); font-size: 18px; resize: none; outline: none; font-weight: 300; }
         .actions { display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 24px; }
         .btn-generate { background: linear-gradient(to right, #3b82f6, #2563eb); color: white; border: none; padding: 14px 32px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: transform 0.2s; font-size: 14px; }
-        .btn-generate:hover { transform: scale(1.02); }
-        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* TABS SYSTEM */
+        .tab-container { display: flex; gap: 4px; padding: 8px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
+        .tab { padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .tab:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .tab.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .tab-content { display: none; padding: 0; }
+        .tab-content.active { display: block; }
 
-        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; display: none; margin-top: 20px; }
-        @media (max-width: 900px) { .results-grid { grid-template-columns: 1fr; } }
-        .result-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
+        .result-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; overflow: hidden; margin-top: 20px; }
         .result-header { padding: 20px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .result-body { padding: 24px; flex: 1; font-size: 15px; }
+        .result-body { padding: 24px; font-size: 15px; }
         pre { margin: 0; white-space: pre-wrap; font-family: 'Fira Code', monospace; color: #a5d6ff; line-height: 1.6; font-size: 13px; }
         .explanation-text { color: var(--muted); white-space: pre-wrap; }
         .btn-copy { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
         .footer { border-top: 1px solid var(--border); background: rgba(13, 13, 26, 0.3); padding: 48px 0; margin-top: 60px; }
-        .footer-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: grid; gap: 40px; grid-template-columns: repeat(1, 1fr); }
-        @media (min-width: 768px) { .footer-container { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .footer-container { grid-template-columns: repeat(5, 1fr); } }
-        .footer-brand { grid-column: span 2; }
-        .footer-logo-wrap { display: flex; align-items: center; gap: 16px; }
+        .footer-logo-wrap { display: flex; align-items: center; gap: 16px; max-width: 1280px; margin: 0 auto; padding: 0 24px; }
         .footer-logo-wrap img { height: 64px; width: 64px; }
-        .footer-logo-text { font-size: 36px; font-weight: 800; letter-spacing: 0.1em; font-family: 'Outfit'; line-height: 1; }
-        .footer-slogan { margin-top: 12px; font-size: 14px; color: var(--muted); }
-        .footer-rights { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-
+        .footer-logo-text { font-size: 36px; font-weight: 800; letter-spacing: 0.1em; font-family: 'Outfit'; }
+        
         .loading-shimmer { height: 200px; background: linear-gradient(90deg, var(--card) 25%, #1e1e2d 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px; display: none; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .error-toast { background: #450a0a; border: 1px solid #991b1b; color: #fecaca; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; display: none; }
@@ -68,10 +66,9 @@
 </head>
 <body>
     <div class="bg-glow"></div>
-
     <header class="navbar">
         <a href="/" style="display: flex; align-items: center;">
-            <img src="/src/assets/logo.png" alt="Solvix" class="logo-img" />
+            <img src="/Logo.png" alt="Solvix" class="logo-img" />
         </a>
         <div style="display: flex; align-items: center; gap: 28px;">
             <nav class="nav-links">
@@ -103,40 +100,45 @@
                 </button>
             </div>
         </div>
+
         <div id="loading" class="loading-shimmer"></div>
-        <div id="results-grid" class="results-grid">
+
+        <div id="results-area" style="display: none;">
             <div class="result-card">
-                <div class="result-header"><div class="label" style="margin:0;"><i data-lucide="info"></i> Análise Técnica</div></div>
-                <div class="result-body"><div id="explanation" class="explanation-text"></div></div>
-            </div>
-            <div class="result-card">
-                <div class="result-header">
-                    <div class="label" style="margin:0;"><i data-lucide="terminal"></i> Script SQL</div>
-                    <button class="btn-copy" onclick="copyCode()"><i data-lucide="copy"></i> Copiar Código</button>
+                <div class="tab-container">
+                    <div class="tab active" onclick="showTab('mapa')"><i data-lucide="map"></i> Fase 1: Mapa</div>
+                    <div class="tab" onclick="showTab('sql')"><i data-lucide="database"></i> Fase 2: SQL</div>
+                    <div class="tab" onclick="showTab('lsp')"><i data-lucide="code"></i> Fase 3: LSP</div>
                 </div>
-                <div class="result-body" style="background: #010409;"><pre id="code-content"></pre></div>
+                
+                <div id="tab-mapa" class="tab-content active">
+                    <div class="result-header"><div class="label" style="margin:0;"><i data-lucide="info"></i> Roadmap da Solução</div></div>
+                    <div class="result-body"><div id="mapa-content" class="explanation-text"></div></div>
+                </div>
+
+                <div id="tab-sql" class="tab-content">
+                    <div class="result-header">
+                        <div class="label" style="margin:0; color: #3b82f6;"><i data-lucide="terminal"></i> Scripts de Banco (SQL)</div>
+                        <button class="btn-copy" onclick="copyContent('sql-content')"><i data-lucide="copy"></i> Copiar SQL</button>
+                    </div>
+                    <div class="result-body" style="background: #010409;"><pre id="sql-content"></pre></div>
+                </div>
+
+                <div id="tab-lsp" class="tab-content">
+                    <div class="result-header">
+                        <div class="label" style="margin:0; color: #3b82f6;"><i data-lucide="terminal"></i> Regras de Negócio (LSP)</div>
+                        <button class="btn-copy" onclick="copyContent('lsp-content')"><i data-lucide="copy"></i> Copiar LSP</button>
+                    </div>
+                    <div class="result-body" style="background: #010409;"><pre id="lsp-content"></pre></div>
+                </div>
             </div>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-brand">
-                <div class="footer-logo-wrap">
-                    <img src="/Logo.png" alt="" />
-                    <span class="footer-logo-text">SOLVIX</span>
-                </div>
-                <p class="footer-slogan">Inteligência Artificial aplicada a desafios operacionais complexos.</p>
-            </div>
-        </div>
-        <div class="container" style="margin-top: 0;">
-            <div class="footer-rights">
-                <div>© 2026 Solvix. Todos os direitos reservados.</div>
-                <div style="display: flex; gap: 20px;">
-                    <span>Privacidade</span>
-                    <span>Termos</span>
-                </div>
-            </div>
+        <div class="footer-logo-wrap">
+            <img src="/Logo.png" alt="" />
+            <span class="footer-logo-text">SOLVIX</span>
         </div>
     </footer>
 
@@ -147,25 +149,32 @@
             localStorage.removeItem('user_role');
             window.location.href = '/';
         }
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+        function copyContent(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            alert("Copiado!");
+        }
         
         const btn = document.getElementById('generate-btn');
         const promptInput = document.getElementById('prompt');
-        const resultsGrid = document.getElementById('results-grid');
+        const resultsArea = document.getElementById('results-area');
         const loading = document.getElementById('loading');
         const errorToast = document.getElementById('error-toast');
-        const explanationDiv = document.getElementById('explanation');
-        const codePre = document.getElementById('code-content');
 
         btn.addEventListener('click', async () => {
             const text = promptInput.value.trim();
             const context = document.getElementById('context').value.trim();
             if (!text) return;
-            
             const fullPrompt = `[MODO SQL] REQUISITO: ${text}${context ? '\nCONTEXTO DE TABELAS: ' + context : ''}`;
-            
             btn.disabled = true;
             loading.style.display = "block";
-            resultsGrid.style.display = "none";
+            resultsArea.style.display = "none";
             errorToast.style.display = "none";
             try {
                 const response = await fetch('/api/gerar-sql', {
@@ -173,7 +182,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: fullPrompt })
                 });
-                if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Erro'); }
+                if (!response.ok) throw new Error('Erro');
                 const data = await response.json();
                 const raw = data.resultado;
                 const getTag = (tag) => {
@@ -183,22 +192,18 @@
                     const e = raw.indexOf("##", after);
                     return (e === -1 ? raw.slice(after) : raw.slice(after, e)).trim();
                 };
-                const explanation = getTag("EXPLICACOES");
-                const code = getTag("CONTEUDO");
-                if (!code && !explanation) { explanationDiv.innerText = "IA Response"; codePre.innerText = raw; }
-                else { explanationDiv.innerText = explanation; codePre.innerText = code; }
+                document.getElementById('mapa-content').innerText = getTag("MAPA") || "Sem mapa.";
+                document.getElementById('sql-content').innerText = getTag("SQL") || "Sem SQL.";
+                document.getElementById('lsp-content').innerText = getTag("LSP") || "Sem LSP.";
                 loading.style.display = "none";
-                resultsGrid.style.display = "grid";
+                resultsArea.style.display = "block";
+                showTab('mapa');
             } catch (err) {
                 loading.style.display = "none";
                 errorToast.innerText = "Erro: " + err.message;
                 errorToast.style.display = "block";
             } finally { btn.disabled = false; }
         });
-        function copyCode() {
-            navigator.clipboard.writeText(codePre.innerText);
-            alert("Script SQL copiado!");
-        }
     </script>
 </body>
 </html>

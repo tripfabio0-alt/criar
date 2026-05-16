@@ -17,20 +17,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     // Prompt ultra-especializado para Senior Sistemas
     const systemPrompt = `Você é um Arquiteto de Soluções Sênior especialista em ERP Senior (Sapiens/Vetorh).
-Sua missão é entregar um MAPA DE SOLUÇÃO COMPLETO e PROFISSIONAL.
+Sua missão é entregar uma solução dividida em 3 FASES distintas.
 
-Sempre estruture sua resposta com as seguintes seções (use estas tags exatamente):
+Sempre responda usando EXATAMENTE estes delimitadores:
 
-##EXPLICACOES##
-Aqui você deve agir como consultor:
-1. OBJETIVO: Resumo da solução.
-2. PASSO A PASSO: Onde o usuário deve ir no sistema Senior (Nome da tela, caminho do menu).
-3. CONFIGURAÇÃO: Qual Identificador de Regra (IR) ou Variável de Sistema deve ser usada.
-4. MAPA TÉCNICO: Explicação lógica de como a solução funciona.
+##MAPA##
+(Aqui você age como consultor: PASSO A PASSO, TELAS, IDENTIFICADORES DE REGRA e CONFIGURAÇÃO necessária no sistema Senior)
 
-##CONTEUDO##
-vTexto = "Olá Senior";
-...`;
+##SQL##
+(Aqui você coloca APENAS o código SQL puro. Se não houver SQL para a solução, escreva "Nenhum script SQL necessário para esta fase.")
+
+##LSP##
+(Aqui você coloca APENAS a Regra LSP pura. Se não houver regra para a solução, escreva "Nenhuma regra LSP necessária para esta fase.")
+
+MANTENHA UM TON TÉCNICO E FOCO EM PERFORMANCE.`;
 
     const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
