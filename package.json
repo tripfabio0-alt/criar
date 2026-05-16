@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp lsp.html dist/ && cp sql.html dist/",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."

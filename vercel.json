@@ -10,5 +10,15 @@
       "destination": "/sql.html",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/lsp.html",
+      "destination": "/lsp.html"
+    },
+    {
+      "source": "/sql.html",
+      "destination": "/sql.html"
+    }
   ]
 }
