@@ -6,7 +6,6 @@ export const Route = createFileRoute('/app/consultoria/senior/$cliente/ferrament
 });
 
 const SYSTEM_PROMPT = `Você é um especialista em regras LSP do Senior Gestão Empresarial ERP.
-Quando receber uma imagem de tela do sistema Senior, analise os campos, botões e contexto visível para entender o que precisa ser customizado.
 Responda EXATAMENTE neste formato com os delimitadores abaixo. Não adicione nada fora dos blocos.
 
 ##TITULO##
@@ -54,243 +53,304 @@ function parseResponse(text: string) {
   };
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=()=>res((r.result as string).split(",")[1]);
-    r.onerror=rej;
-    r.readAsDataURL(file);
-  });
-}
-
 function LspGeneratorRoute() {
   const { cliente } = useParams({ from: '/app/consultoria/senior/$cliente/ferramentas/lsp' });
 
-  const inputRef=useRef<HTMLTextAreaElement>(null);
-  const [image,setImage]=useState<any>(null);
-  const [loading,setLoading]=useState(false);
-  const [result,setResult]=useState<any>(null);
-  const [error,setError]=useState("");
-  const [tab,setTab]=useState("script");
-  const [copied,setCopied]=useState(false);
-  const [dragOver,setDragOver]=useState(false);
-  const [mode,setMode]=useState("text");
-  const fileRef=useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [tab, setTab] = useState("script");
+  const [copied, setCopied] = useState(false);
 
-  const handleFile=async(file: File | undefined | null)=>{
-    if(!file||!file.type.startsWith("image/"))return;
-    const base64=await fileToBase64(file);
-    setImage({file,base64,preview:URL.createObjectURL(file),mediaType:file.type});
-    setMode("image");
-  };
-
-  const generate=async()=>{
+  const generate = async () => {
     const currentInput = inputRef.current?.value || "";
-    if(!currentInput.trim()&&!image)return;
-    setLoading(true);setError("");setResult(null);
-    try{
-      let messages;
-      if(mode==="image"&&image){
-        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:currentInput.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
-        messages=[{role:"user",content}];
-      }else{
-        messages=[{role:"user",content:currentInput.trim()}];
+    if (!currentInput.trim()) return;
+    
+    setLoading(true);
+    setError("");
+    setResult(null);
+    
+    try {
+      const messages = [{ role: "user", content: currentInput.trim() }];
+      
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages
+        }),
+      });
+      
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          setTimeout(() => {
+            setResult(parseResponse(`##TITULO##\nRegra Gerada (Modo Demonstração)\n##MODULO##\nPCP\n##IDENTIFICADOR##\nPCP-00001\n##DESCRICAO##\nDemonstração de regra gerada por texto.\n##SCRIPT##\n@ Script de Exemplo @\nDefinir Alfa aMensagem;\naMensagem = "Olá, esta é uma regra gerada a partir de: " + "${currentInput.trim().substring(0, 20)}...";\nMensagem(Retorna, aMensagem);\n##VARIAVEIS##\naMensagem|Alfa|Mensagem a ser exibida\n##FUNCOES##\nMensagem|Exibe um alerta na tela do sistema\n##DICAS##\nPara usar em produção, configure a API Key.\n##ATENCAO##\nModo de demonstração ativado.\n##FIM##`));
+            setTab("script");
+            setLoading(false);
+          }, 1500);
+          return;
+        }
+        throw new Error(`API ${res.status}: ${e?.error?.message || res.statusText}`);
       }
       
-      // Attempt to call Anthropics API or fallback to mock if no API key is provided
-      try {
-        const res=await fetch("https://api.anthropic.com/v1/messages",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:1000,system:SYSTEM_PROMPT,messages}),
-        });
-        if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(`API ${res.status}: ${e?.error?.message||res.statusText}`);}
-        const data=await res.json();
-        const raw=(data.content||[]).map((c: any)=>c.text||"").join("");
-        if(!raw)throw new Error("Resposta vazia.");
-        if(!raw.includes("##TITULO##"))throw new Error("Formato inesperado. Tente novamente.");
-        setResult(parseResponse(raw));setTab("script");
-      } catch (err: any) {
-        // Fallback mock to allow the UI to work without real Anthropic API key in browser
-        console.warn("API Call Failed, using mock. Error:", err);
-        setResult(parseResponse(`##TITULO##\nRegra Mock\n##MODULO##\nPCP\n##IDENTIFICADOR##\nMock-1\n##DESCRICAO##\nMock desc\n##SCRIPT##\n@ Mock @\nDefinir Alfa x;\n##VARIAVEIS##\nx|Alfa|Mock var\n##FUNCOES##\nF|Mock func\n##DICAS##\nDica mock\n##ATENCAO##\nAtencao mock\n##FIM##`));
-        setTab("script");
-      }
-    }catch(err: any){setError(err.message||"Erro desconhecido.");}
-    finally{setLoading(false);}
+      const data = await res.json();
+      const raw = (data.content || []).map((c: any) => c.text || "").join("");
+      
+      if (!raw) throw new Error("Resposta vazia.");
+      if (!raw.includes("##TITULO##")) throw new Error("Formato inesperado. Tente novamente.");
+      
+      setResult(parseResponse(raw));
+      setTab("script");
+    } catch (err: any) {
+      setError(err.message || "Erro desconhecido.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const copy=()=>{if(!result?.script)return;navigator.clipboard.writeText(result.script);setCopied(true);setTimeout(()=>setCopied(false),2000);};
-  const lc=(line: string)=>{const t=line.trim();if(t.startsWith("@"))return"#64748b";if(/^(Definir|Se|FimSe|Enquanto|FimEnquanto|ParaCada|FimParaCada)\b/i.test(t))return"#93c5fd";if(/^[A-Z][a-zA-Z]+\(/.test(t))return"#86efac";return"#cbd5e1";};
-  const ok=!loading; // Removed input check here to avoid re-renders. Button always clickable, but generates only if valid.
+  const copy = () => {
+    if (!result?.script) return;
+    navigator.clipboard.writeText(result.script);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  const lc = (line: string) => {
+    const t = line.trim();
+    if (t.startsWith("@")) return "#64748b";
+    if (/^(Definir|Se|FimSe|Enquanto|FimEnquanto|ParaCada|FimParaCada)\b/i.test(t)) return "#93c5fd";
+    if (/^[A-Z][a-zA-Z]+\(/.test(t)) return "#86efac";
+    return "#cbd5e1";
+  };
+  
+  const ok = !loading;
 
-  return(
-    <div style={{background:"#0f1117",fontFamily:"'Courier New',monospace",color:"#e2e8f0", paddingBottom: "40px", borderRadius: "12px", border: "1px solid #1e293b", overflow: "hidden"}}>
-      {/* Header interno do gerador */}
-      <div style={{borderBottom:"1px solid #1e293b",background:"#0a0d14",padding:"18px 32px",display:"flex",alignItems:"center",gap:16}}>
-        <div style={{width:36,height:36,background:"linear-gradient(135deg,#f59e0b,#d97706)",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:"bold",color:"#000"}}>S</div>
+  return (
+    <div className="flex flex-col min-h-screen bg-[#0f1117] font-mono text-slate-200 rounded-xl border border-slate-800 overflow-hidden shadow-2xl pb-10">
+      <div className="flex items-center gap-4 bg-[#0a0d14] border-b border-slate-800 p-6 px-8">
+        <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gradient-to-br from-amber-500 to-amber-600 text-black font-bold text-xl">
+          S
+        </div>
         <div>
-          <div style={{fontSize:14,fontWeight:600,color:"#f1f5f9",letterSpacing:"0.05em",textTransform:"uppercase"}}>GERADOR LSP · {cliente}</div>
-          <div style={{fontSize:10,color:"#64748b",letterSpacing:"0.08em"}}>GESTÃO EMPRESARIAL | ERP · LÓGICA INTELIGENTE</div>
+          <div className="text-sm font-semibold text-slate-100 tracking-wider">
+            SENIOR · GERADOR DE REGRAS LSP (TEXT-ONLY)
+          </div>
+          <div className="text-[10px] text-slate-500 tracking-[0.08em] uppercase mt-0.5">
+            Cliente Atual: {cliente}
+          </div>
+        </div>
+        <div className="ml-auto flex gap-2">
+          {["#ef4444", "#f59e0b", "#22c55e"].map((c, i) => (
+            <div key={i} className="w-2.5 h-2.5 rounded-full opacity-70" style={{ backgroundColor: c }} />
+          ))}
         </div>
       </div>
 
-      <div style={{maxWidth:900,margin:"0 auto",padding:"28px 24px"}}>
-
-        {/* Mode Toggle */}
-        <div style={{display:"flex",gap:4,marginBottom:16,background:"#0a0d14",border:"1px solid #1e293b",borderRadius:6,padding:4,width:"fit-content"}}>
-          {[{k:"text",i:"✏",l:"TEXTO"},{k:"image",i:"🖼",l:"PRINT DE TELA"}].map(m=>(
-            <button key={m.k} onClick={()=>setMode(m.k)} style={{padding:"7px 16px",borderRadius:4,border:"none",background:mode===m.k?"#1e293b":"transparent",color:mode===m.k?"#f59e0b":"#475569",fontSize:11,fontFamily:"inherit",letterSpacing:"0.08em",cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontWeight:mode===m.k?700:400}}>
-              {m.i} {m.l}
-            </button>
-          ))}
-        </div>
-
-        {/* Input Card */}
-        <div style={{background:"#13171f",border:"1px solid #1e293b",borderRadius:8,overflow:"hidden",marginBottom:20}}>
-          <div style={{padding:"10px 16px",background:"#0f1117",borderBottom:"1px solid #1e293b",fontSize:11,color:"#475569",letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{color:"#f59e0b"}}>▶</span>
-            {mode==="image"?"UPLOAD DO PRINT + DESCRIÇÃO DO QUE DESEJA":"DESCREVA SUA NECESSIDADE"}
-            <span style={{marginLeft:"auto",color:"#334155"}}>Ctrl+Enter para gerar</span>
+      <div className="max-w-4xl w-full mx-auto p-6 pt-8">
+        <div className="bg-[#13171f] border border-slate-800 rounded-lg overflow-hidden mb-6">
+          <div className="flex items-center gap-2 px-4 py-3 bg-[#0f1117] border-b border-slate-800 text-xs text-slate-500 tracking-wider">
+            <span className="text-amber-500">▶</span>
+            DESCREVA SUA NECESSIDADE EM TEXTO
+            <span className="ml-auto text-slate-600">Ctrl+Enter para gerar</span>
           </div>
-
-          {/* Drop Zone */}
-          {mode==="image"&&(
-            <div
-              onDragOver={e=>{e.preventDefault();setDragOver(true);}}
-              onDragLeave={()=>setDragOver(false)}
-              onDrop={e=>{e.preventDefault();setDragOver(false);handleFile(e.dataTransfer.files[0]);}}
-              onClick={()=>!image&&fileRef.current?.click()}
-              style={{margin:16,borderRadius:6,border:`2px dashed ${dragOver?"#f59e0b":"#1e293b"}`,background:dragOver?"#1c1200":"#0f1117",transition:"all .2s",cursor:image?"default":"pointer",overflow:"hidden"}}
-            >
-              {image?(
-                <div style={{position:"relative"}}>
-                  <img src={image.preview} alt="" style={{width:"100%",maxHeight:240,objectFit:"contain",display:"block",background:"#000"}}/>
-                  <button onClick={e=>{e.stopPropagation();setImage(null);}} style={{position:"absolute",top:8,right:8,background:"#1a0a0a",border:"1px solid #7f1d1d",borderRadius:4,color:"#fca5a5",fontSize:11,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit"}}>✕ REMOVER</button>
-                  <div style={{padding:"6px 12px",background:"#0a0d14",borderTop:"1px solid #1e293b",fontSize:11,color:"#475569"}}>📎 {image.file.name} · {(image.file.size/1024).toFixed(0)} KB</div>
-                </div>
-              ):(
-                <div style={{padding:28,textAlign:"center",color:"#334155"}}>
-                  <div style={{fontSize:28,marginBottom:8}}>🖼</div>
-                  <div style={{fontSize:12,marginBottom:4,color:"#475569"}}>Arraste um print da tela Senior aqui</div>
-                  <div style={{fontSize:11}}>ou clique para selecionar · PNG, JPG, JPEG</div>
-                </div>
-              )}
-            </div>
-          )}
-          <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target?.files?.[0])}/>
 
           <textarea
             ref={inputRef}
             defaultValue=""
-            onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();}}
-            placeholder={mode==="image"?"Ex: Quero validar o campo Qtde antes de salvar, bloqueando se for zero...":"Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."}
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) generate(); }}
+            placeholder="Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."
             data-gramm="false"
             data-gramm_editor="false"
             data-enable-grammarly="false"
             spellCheck={false}
-            className="placeholder:text-slate-600 focus:outline-none"
-            style={{width:"100%",minHeight:90,background:"transparent",border:"none",borderTop:"1px solid #1e293b",outline:"none",padding:16,color:"#cbd5e1",fontSize:13,fontFamily:"inherit",resize:"vertical",lineHeight:1.6,boxSizing:"border-box"}}
+            className="w-full min-h-[140px] bg-transparent border-none outline-none p-5 text-slate-300 text-sm font-mono resize-y leading-relaxed placeholder:text-slate-600 focus:ring-0"
           />
 
-          <div style={{padding:"10px 16px",borderTop:"1px solid #1e293b",display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-            {mode==="text"&&(
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                {["Validar operador ao apontar OP","Bloquear pedido sem estoque","Log de alteração de quantidade"].map(ex=>(
-                  <button key={ex} onClick={()=>{if(inputRef.current) inputRef.current.value=ex;}} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"4px 10px",color:"#475569",fontSize:10,fontFamily:"inherit",cursor:"pointer"}}>{ex}</button>
-                ))}
-              </div>
-            )}
-            {mode==="image"&&(
-              <button onClick={()=>fileRef.current?.click()} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:4,padding:"6px 12px",color:"#475569",fontSize:11,fontFamily:"inherit",cursor:"pointer"}}>
-                📎 {image?"TROCAR IMAGEM":"SELECIONAR IMAGEM"}
-              </button>
-            )}
-            <button onClick={generate} disabled={!ok} style={{background:!ok?"#1e293b":"linear-gradient(135deg,#f59e0b,#d97706)",color:!ok?"#475569":"#000",border:"none",borderRadius:6,padding:"10px 24px",fontSize:12,fontFamily:"inherit",fontWeight:700,letterSpacing:"0.1em",cursor:!ok?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:8,marginLeft:"auto"}}>
-              {loading?<><span style={{display:"inline-block",animation:"spin 1s linear infinite"}}>⟳</span>GERANDO...</>:mode==="image"?"🖼 ANALISAR E GERAR":"⚡ GERAR REGRA"}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-slate-800 bg-[#0f1117]/50">
+            <div className="flex flex-wrap gap-2">
+              {["Validar operador na OP", "Bloquear pedido sem estoque", "Log de quantidade"].map(ex => (
+                <button 
+                  key={ex} 
+                  onClick={() => { if (inputRef.current) inputRef.current.value = ex; }} 
+                  className="bg-[#0f1117] border border-slate-800 rounded px-3 py-1 text-[11px] text-slate-400 hover:text-slate-300 hover:border-slate-700 transition-colors font-mono cursor-pointer"
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+            
+            <button 
+              onClick={generate} 
+              disabled={!ok} 
+              className={`ml-auto flex items-center gap-2 px-6 py-2.5 rounded-md text-xs font-bold tracking-wider uppercase transition-all ${
+                !ok ? "bg-slate-800 text-slate-500 cursor-not-allowed" : "bg-gradient-to-br from-amber-500 to-amber-600 text-black hover:opacity-90 cursor-pointer"
+              }`}
+            >
+              {loading ? (
+                <>
+                  <span className="animate-spin inline-block">⟳</span> GERANDO...
+                </>
+              ) : (
+                <>⚡ GERAR REGRA</>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Error */}
-        {error&&<div style={{background:"#1a0a0a",border:"1px solid #7f1d1d",borderRadius:6,padding:"12px 16px",color:"#fca5a5",fontSize:12,marginBottom:16,wordBreak:"break-word"}}>⚠ {error}</div>}
+        {error && (
+          <div className="bg-red-950/40 border border-red-900/50 rounded-md p-3 text-xs text-red-400 mb-4 break-words">
+            ⚠ {error}
+          </div>
+        )}
 
-        {/* Result */}
-        {result&&(
-          <>
-            <div style={{background:"#13171f",border:"1px solid #1e293b",borderRadius:8,padding:"16px 20px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-              {[{label:"TÍTULO",value:result.titulo,color:"#f1f5f9"},{label:"MÓDULO",value:result.modulo,color:"#f59e0b"},{label:"IDENTIFICADOR",value:result.identificador,color:"#94a3b8"},{label:"DESCRIÇÃO",value:result.descricao,color:"#94a3b8"}].map(({label,value,color})=>(
-                <div key={label}><div style={{fontSize:10,color:"#475569",letterSpacing:"0.1em",marginBottom:4}}>{label}</div><div style={{fontSize:13,color,lineHeight:1.4}}>{value}</div></div>
+        {result && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid grid-cols-2 gap-3 p-4 bg-[#13171f] border border-slate-800 rounded-lg mb-4">
+              {[
+                { label: "TÍTULO", value: result.titulo, color: "text-slate-100" },
+                { label: "MÓDULO", value: result.modulo, color: "text-amber-500" },
+                { label: "IDENTIFICADOR", value: result.identificador, color: "text-slate-400" },
+                { label: "DESCRIÇÃO", value: result.descricao, color: "text-slate-400" }
+              ].map(({ label, value, color }) => (
+                <div key={label}>
+                  <div className="text-[10px] text-slate-500 tracking-wider mb-1">{label}</div>
+                  <div className={`text-sm leading-relaxed ${color}`}>{value}</div>
+                </div>
               ))}
             </div>
-            <div style={{background:"#13171f",border:"1px solid #1e293b",borderRadius:8,overflow:"hidden"}}>
-              <div style={{display:"flex",borderBottom:"1px solid #1e293b",background:"#0f1117"}}>
-                {[{k:"script",l:"📄 SCRIPT LSP"},{k:"variaveis",l:"🔤 VARIÁVEIS"},{k:"funcoes",l:"⚙ FUNÇÕES"},{k:"ajuda",l:"💡 AJUDA"}].map(t=>(
-                  <button key={t.k} onClick={()=>setTab(t.k)} style={{padding:"10px 14px",background:"transparent",border:"none",borderBottom:tab===t.k?"2px solid #f59e0b":"2px solid transparent",color:tab===t.k?"#f59e0b":"#475569",fontSize:11,fontFamily:"inherit",cursor:"pointer",fontWeight:tab===t.k?700:400}}>{t.l}</button>
+
+            <div className="bg-[#13171f] border border-slate-800 rounded-lg overflow-hidden">
+              <div className="flex border-b border-slate-800 bg-[#0f1117]">
+                {[
+                  { k: "script", l: "📄 SCRIPT LSP" },
+                  { k: "variaveis", l: "🔤 VARIÁVEIS" },
+                  { k: "funcoes", l: "⚙ FUNÇÕES" },
+                  { k: "ajuda", l: "💡 AJUDA" }
+                ].map(t => (
+                  <button 
+                    key={t.k} 
+                    onClick={() => setTab(t.k)} 
+                    className={`px-4 py-3 text-[11px] font-mono cursor-pointer transition-colors border-b-2 ${
+                      tab === t.k ? "border-amber-500 text-amber-500 font-bold bg-amber-500/5" : "border-transparent text-slate-500 hover:text-slate-400"
+                    }`}
+                  >
+                    {t.l}
+                  </button>
                 ))}
               </div>
-              {tab==="script"&&(
-                <div style={{position:"relative"}}>
-                  <button onClick={copy} style={{position:"absolute",top:12,right:12,background:copied?"#166534":"#1e293b",color:copied?"#86efac":"#94a3b8",border:`1px solid ${copied?"#166534":"#334155"}`,borderRadius:4,padding:"6px 12px",fontSize:10,fontFamily:"inherit",cursor:"pointer",zIndex:10}}>{copied?"✓ COPIADO":"⎘ COPIAR"}</button>
-                  <pre style={{margin:0,padding:"20px 16px",fontSize:12,lineHeight:1.7,overflowX:"auto",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
-                    {(result.script||"").split("\n").map((line: string,i: number)=>(
-                      <span key={i} style={{color:lc(line),fontStyle:line.trim().startsWith("@")?"italic":"normal",display:"block"}}>
-                        <span style={{color:"#334155",userSelect:"none",marginRight:12,fontSize:10}}>{String(i+1).padStart(2,"0")}</span>{line}
+              
+              {tab === "script" && (
+                <div className="relative">
+                  <button 
+                    onClick={copy} 
+                    className={`absolute top-4 right-4 z-10 px-3 py-1.5 rounded text-[10px] font-mono cursor-pointer transition-colors border ${
+                      copied ? "bg-green-950/50 text-green-400 border-green-900" : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                    }`}
+                  >
+                    {copied ? "✓ COPIADO" : "⎘ COPIAR"}
+                  </button>
+                  <pre className="m-0 p-5 pt-12 text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-words bg-[#0a0c10]">
+                    {(result.script || "").split("\n").map((line: string, i: number) => (
+                      <span key={i} className={`block ${line.trim().startsWith("@") ? "italic" : ""}`} style={{ color: lc(line) }}>
+                        <span className="text-slate-700 select-none mr-4 text-[10px]">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        {line}
                       </span>
                     ))}
                   </pre>
                 </div>
               )}
-              {tab==="variaveis"&&(
-                <div style={{padding:16}}>
-                  {result.variaveis?.length>0?(
-                    <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                      <thead><tr style={{borderBottom:"1px solid #1e293b"}}>{["VARIÁVEL","TIPO","DESCRIÇÃO"].map(h=><th key={h} style={{padding:"8px 12px",textAlign:"left",color:"#475569",fontSize:10,letterSpacing:"0.1em"}}>{h}</th>)}</tr></thead>
-                      <tbody>{result.variaveis.map((v: any,i: number)=>(
-                        <tr key={i} style={{borderBottom:"1px solid #0f1117"}}>
-                          <td style={{padding:"10px 12px",color:"#86efac",fontFamily:"monospace"}}>{v.nome}</td>
-                          <td style={{padding:"10px 12px"}}><span style={{background:v.tipo==="Alfa"?"#1e3a5f":v.tipo==="Numero"?"#1a3a1a":"#3a1a1a",color:v.tipo==="Alfa"?"#93c5fd":v.tipo==="Numero"?"#86efac":"#fca5a5",padding:"2px 8px",borderRadius:3,fontSize:10}}>{v.tipo}</span></td>
-                          <td style={{padding:"10px 12px",color:"#94a3b8"}}>{v.descricao}</td>
+              
+              {tab === "variaveis" && (
+                <div className="p-4">
+                  {result.variaveis?.length > 0 ? (
+                    <table className="w-full border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-800">
+                          {["VARIÁVEL", "TIPO", "DESCRIÇÃO"].map(h => (
+                            <th key={h} className="p-3 text-left text-[10px] text-slate-500 tracking-wider font-normal">
+                              {h}
+                            </th>
+                          ))}
                         </tr>
-                      ))}</tbody>
+                      </thead>
+                      <tbody>
+                        {result.variaveis.map((v: any, i: number) => (
+                          <tr key={i} className="border-b border-[#0f1117]">
+                            <td className="p-3 text-emerald-300 font-mono">{v.nome}</td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] ${
+                                v.tipo === "Alfa" ? "bg-blue-950/50 text-blue-300 border border-blue-900/50" :
+                                v.tipo === "Numero" ? "bg-emerald-950/50 text-emerald-300 border border-emerald-900/50" :
+                                "bg-red-950/50 text-red-300 border border-red-900/50"
+                              }`}>
+                                {v.tipo}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-400">{v.descricao}</td>
+                          </tr>
+                        ))}
+                      </tbody>
                     </table>
-                  ):<div style={{color:"#475569",fontSize:12,textAlign:"center",padding:24}}>Nenhuma variável documentada.</div>}
+                  ) : (
+                    <div className="text-center p-8 text-xs text-slate-500">Nenhuma variável documentada.</div>
+                  )}
                 </div>
               )}
-              {tab==="funcoes"&&(
-                <div style={{padding:16,display:"flex",flexDirection:"column",gap:8}}>
-                  {(result.funcoes||[]).map((f: any,i: number)=>(
-                    <div key={i} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:6,padding:"12px 16px",display:"flex",gap:16}}>
-                      <span style={{color:"#f59e0b",fontSize:12,fontFamily:"monospace",minWidth:180,fontWeight:600}}>{f.nome}()</span>
-                      <span style={{color:"#94a3b8",fontSize:12,lineHeight:1.5}}>{f.descricao}</span>
+              
+              {tab === "funcoes" && (
+                <div className="p-4 flex flex-col gap-2">
+                  {(result.funcoes || []).map((f: any, i: number) => (
+                    <div key={i} className="flex gap-4 p-3 bg-[#0f1117] border border-slate-800 rounded-md">
+                      <span className="text-amber-500 text-xs font-mono font-semibold min-w-[180px]">{f.nome}()</span>
+                      <span className="text-slate-400 text-xs leading-relaxed">{f.descricao}</span>
                     </div>
                   ))}
+                  {(!result.funcoes || result.funcoes.length === 0) && (
+                    <div className="text-center p-8 text-xs text-slate-500">Nenhuma função especial documentada.</div>
+                  )}
                 </div>
               )}
-              {tab==="ajuda"&&(
-                <div style={{padding:20}}>
-                  {result.atencao&&<div style={{background:"#1c1200",border:"1px solid #78350f",borderRadius:6,padding:"12px 16px",marginBottom:20,display:"flex",gap:10}}><span>⚠</span><div><div style={{fontSize:10,color:"#f59e0b",letterSpacing:"0.1em",marginBottom:4}}>ATENÇÃO</div><div style={{fontSize:12,color:"#fcd34d",lineHeight:1.5}}>{result.atencao}</div></div></div>}
-                  <div style={{fontSize:10,color:"#475569",letterSpacing:"0.1em",marginBottom:12}}>DICAS DE USO</div>
-                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                    {(result.dicas||[]).map((d: string,i: number)=>(
-                      <div key={i} style={{background:"#0f1117",border:"1px solid #1e293b",borderRadius:6,padding:"12px 16px",fontSize:12,color:"#94a3b8",lineHeight:1.5,display:"flex",gap:10}}>
-                        <span style={{color:"#f59e0b",minWidth:16}}>{i+1}.</span>{d}
+              
+              {tab === "ajuda" && (
+                <div className="p-5">
+                  {result.atencao && (
+                    <div className="flex gap-3 p-4 mb-5 bg-amber-950/20 border border-amber-900/50 rounded-md">
+                      <span className="text-amber-500">⚠</span>
+                      <div>
+                        <div className="text-[10px] text-amber-500 tracking-wider mb-1 font-semibold">ATENÇÃO</div>
+                        <div className="text-xs text-amber-200 leading-relaxed">{result.atencao}</div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-[10px] text-slate-500 tracking-wider mb-3">DICAS DE USO</div>
+                  <div className="flex flex-col gap-2">
+                    {(result.dicas || []).map((d: string, i: number) => (
+                      <div key={i} className="flex gap-3 p-3 bg-[#0f1117] border border-slate-800 rounded-md text-xs text-slate-400 leading-relaxed">
+                        <span className="text-amber-500 font-bold min-w-[16px]">{i + 1}.</span>{d}
                       </div>
                     ))}
+                    {(!result.dicas || result.dicas.length === 0) && (
+                      <div className="text-slate-500 text-xs italic">Nenhuma dica fornecida.</div>
+                    )}
                   </div>
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
 
-        {!result&&!loading&&!error&&(
-          <div style={{textAlign:"center",padding:"40px 24px"}}>
-            <div style={{fontSize:32,marginBottom:12,opacity:.2}}>{mode==="image"?"🖼":"⌨"}</div>
-            <div style={{fontSize:12,lineHeight:1.6,maxWidth:420,margin:"0 auto",color:"#475569"}}>
-              {mode==="image"
-                ?"Faça upload de um print da tela do Senior e descreva o que deseja customizar. O sistema irá analisar os campos visíveis e gerar a regra LSP automaticamente."
-                :<>Digite uma descrição ou mude para <strong style={{color:"#f59e0b"}}>PRINT DE TELA</strong> para gerar regras a partir de capturas de tela do Senior.</>}
+        {!result && !loading && !error && (
+          <div className="text-center p-10 pt-12">
+            <div className="text-4xl mb-4 opacity-20">⌨</div>
+            <div className="text-xs leading-relaxed max-w-sm mx-auto text-slate-500">
+              Digite uma descrição detalhada para gerar regras LSP automaticamente usando inteligência artificial.
             </div>
           </div>
         )}
