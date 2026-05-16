@@ -162,12 +162,10 @@ function LspGeneratorRoute() {
           <textarea
             ref={inputRef}
             defaultValue=""
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) generate(); }}
             placeholder="Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."
             data-gramm="false"
             data-gramm_editor="false"
             data-enable-grammarly="false"
-            spellCheck={false}
             className="w-full min-h-[140px] bg-transparent border-none outline-none p-5 text-slate-300 text-sm font-mono resize-y leading-relaxed placeholder:text-slate-600 focus:ring-0"
           />
 
