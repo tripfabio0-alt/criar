@@ -13,16 +13,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!GEMINI_API_KEY) throw new Error('Chave GEMINI_API_KEY não configurada.');
 
-    // ── MODO DETETIVE ──────────────────────────────────────────────────────
-    // Vamos listar os modelos disponíveis para entender o que está acontecendo
-    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-    const listData = await listRes.json();
+    const modelToUse = 'gemini-2.0-flash';
     
-    const availableModels = listData.models ? listData.models.map((m: any) => m.name.replace('models/', '')).join(', ') : 'Nenhum modelo encontrado';
+    const systemPrompt = `Você é um Engenheiro de Software especialista em Senior Sistemas (LSP e SQL 2).
+Gere respostas técnicas precisas seguindo rigorosamente os delimitadores ## indicados no prompt do usuário.
+Não adicione texto explicativo fora dos blocos delimitados.`;
 
-    // Tentar o modelo que costuma ser o padrão atual
-    const modelToUse = 'gemini-1.5-flash';
-    
     const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
