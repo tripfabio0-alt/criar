@@ -30,7 +30,7 @@ Não adicione texto explicativo fora dos blocos delimitados.`;
     const data = await geminiRes.json();
     
     if (data.error) {
-      throw new Error(`Erro Google: ${data.error.message}. Modelos Disponíveis nesta Chave: [${availableModels}]`);
+      throw new Error(`Erro Google: ${data.error.message}`);
     }
 
     const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta da IA';
