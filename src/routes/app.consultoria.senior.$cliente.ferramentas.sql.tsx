@@ -89,14 +89,11 @@ function SqlGeminiGenerator() {
     setResult(null);
 
     try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://dvvjcewohzbtgtotlbbv.supabase.co';
-      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/gerar-sql`, {
+      // Chamando a nova Vercel Function
+      const res = await fetch(`/api/gerar-sql`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ prompt: `[MODO SQL] ${prompt}` }),
       });
