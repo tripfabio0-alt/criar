@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt">
   <head>
+    <script>
+      // REDIRECIONAMENTO DE EMERGÊNCIA (ANTES DE CARREGAR QUALQUER COISA)
+      if (window.location.pathname.includes('/ferramentas/lsp')) {
+        window.location.href = '/lsp.html';
+      } else if (window.location.pathname.includes('/ferramentas/sql')) {
+        window.location.href = '/sql.html';
+      }
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solvix — Soluções de IA para problemas reais</title>
