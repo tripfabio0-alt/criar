@@ -8,9 +8,9 @@ const router = getRouter();
 
 // Redirecionamento de Performance: Se for ferramenta, pula o React e vai pro HTML puro
 if (window.location.pathname.includes('/ferramentas/lsp')) {
-  window.location.href = '/gerador/index.html';
+  window.location.href = '/gerador/';
 } else if (window.location.pathname.includes('/ferramentas/sql')) {
-  window.location.href = '/gerador/sql.html';
+  window.location.href = '/gerador/sql/';
 } else {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
