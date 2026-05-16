@@ -73,12 +73,15 @@ export const mockSegmentos: Segmento[] = [
 ];
 
 export const mockFerramentas: Ferramenta[] = [
-  { id: 'fer-1', segmentoId: 'seg-1', nome: 'Senior ERP', slug: 'senior', descricao: 'Customizações LSP e integrações Senior Sapiens', icone: '🤖', cor: '#f59e0b' }
+  { id: 'fer-1', segmentoId: 'seg-1', nome: 'Senior LSP (Regras)', slug: 'senior', descricao: 'Customizações LSP e integrações Senior Sapiens', icone: '🤖', cor: '#6366f1' },
+  { id: 'fer-2', segmentoId: 'seg-1', nome: 'Senior SQL (Relatórios)', slug: 'senior-sql', descricao: 'Consultas SQL, cursores e relatórios de banco de dados', icone: '📊', cor: '#3b82f6' }
 ];
 
 export const mockClientes: Cliente[] = [
-  { id: 'cli-1', ferramentaId: 'fer-1', nome: 'Eraser Ltda', slug: 'eraser', empresa: 'Eraser S/A', cnpj: '12.345.678/0001-90', email: 'suporte@eraser.com', telefone: '(11) 98888-7777', status: 'ativo', observacoes: 'Cliente principal de customização de PCP e Manufatura' },
-  { id: 'cli-2', ferramentaId: 'fer-1', nome: 'Empresa Alfa', slug: 'empresa-alfa', empresa: 'Alfa Industrial', cnpj: '98.765.432/0001-10', email: 'erp@alfa.ind.br', telefone: '(47) 3444-2222', status: 'ativo', observacoes: 'Usa módulo de mercado e finanças da Senior' }
+  { id: 'cli-1', ferramentaId: 'fer-1', nome: 'Eraser (LSP)', slug: 'eraser', empresa: 'Eraser S/A', status: 'ativo' },
+  { id: 'cli-2', ferramentaId: 'fer-1', nome: 'Empresa Alfa (LSP)', slug: 'empresa-alfa', empresa: 'Alfa Industrial', status: 'ativo' },
+  { id: 'cli-3', ferramentaId: 'fer-2', nome: 'Eraser (SQL)', slug: 'eraser-sql', empresa: 'Eraser S/A', status: 'ativo' },
+  { id: 'cli-4', ferramentaId: 'fer-2', nome: 'Empresa Alfa (SQL)', slug: 'empresa-alfa-sql', empresa: 'Alfa Industrial', status: 'ativo' }
 ];
 
 export const mockProjetos: Projeto[] = [

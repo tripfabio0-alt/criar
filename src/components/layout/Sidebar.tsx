@@ -31,11 +31,17 @@ export const Sidebar: React.FC = memo(() => {
 
   const handleClientClick = useCallback(
     (clientSlug: string) => {
+      const client = clientes.find(c => c.slug === clientSlug);
+      if (!client) return;
+      
+      const tool = ferramentas.find(f => f.id === client.ferramentaId);
       setActiveClientBySlug(clientSlug);
-      const toolUrl = expandedTool === 'senior-sql' ? '/gerador/sql/' : '/gerador/';
+      
+      // Define a URL baseada no slug da ferramenta
+      const toolUrl = tool?.slug === 'senior-sql' ? '/gerador/sql/' : '/gerador/';
       window.location.href = toolUrl;
     },
-    [setActiveClientBySlug, expandedTool]
+    [clientes, ferramentas, setActiveClientBySlug]
   );
 
   const handleSegmentClick = useCallback(
