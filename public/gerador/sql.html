@@ -3,77 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador SQL - Solvix Pro</title>
+    <title>Solvix Pro - SQL Senior</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: #05050a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 800px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .card { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .card-header { background: #161b22; padding: 12px 20px; border-bottom: 1px solid #30363d; color: #58a6ff; font-size: 11px; font-weight: bold; letter-spacing: 1px; }
-        textarea { width: 100%; height: 250px; background: transparent; color: white; border: none; padding: 20px; font-size: 16px; font-family: monospace; outline: none; box-sizing: border-box; resize: vertical; }
-        .footer { padding: 15px 20px; background: #090c10; border-top: 1px solid #30363d; display: flex; justify-content: flex-end; }
-        button { background: #238636; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        #result { margin-top: 25px; width: 100%; }
-        .result-box { background: #010409; border: 1px solid #30363d; border-radius: 8px; padding: 20px; position: relative; }
-        pre { margin: 0; color: #79c0ff; font-size: 14px; white-space: pre-wrap; line-height: 1.6; }
-        .back-link { color: #8b949e; text-decoration: none; font-size: 13px; border: 1px solid #30363d; padding: 6px 12px; border-radius: 6px; }
-        .back-link:hover { border-color: #8b949e; color: white; }
-        .error-msg { color: #ff7b72; font-size: 13px; margin-top: 10px; display: none; }
+        :root {
+            --bg: #030408;
+            --card: #0a0c14;
+            --border: #1e293b;
+            --primary: #3b82f6;
+            --secondary: #6366f1;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .navbar { height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: rgba(3,4,8,0.8); backdrop-blur: 12px; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+        .logo span { color: var(--primary); }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .input-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .label { font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        textarea { width: 100%; height: 120px; background: transparent; border: none; color: var(--text); font-size: 18px; resize: none; outline: none; padding: 0; margin-top: 10px; }
+        .actions { display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
+        .btn-generate { background: linear-gradient(135deg, var(--primary), #2563eb); color: white; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+        .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; display: none; }
+        @media (max-width: 900px) { .results-grid { grid-template-columns: 1fr; } }
+        .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+        .result-header { padding: 16px 24px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .result-body { padding: 24px; flex: 1; font-size: 14px; }
+        pre { margin: 0; white-space: pre-wrap; font-family: 'Fira Code', monospace; color: #79c0ff; line-height: 1.5; }
+        .explanation-text { color: var(--muted); white-space: pre-wrap; }
+        .btn-copy { background: var(--border); color: var(--text); border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .loading-shimmer { height: 200px; background: linear-gradient(90deg, var(--card) 25%, #1e293b 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 16px; display: none; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .error-toast { background: #450a0a; border: 1px solid #991b1b; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; display: none; }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="logo">SOLVIX<span>SQL</span></div>
+        <a href="/app/dashboard" style="color: var(--muted); text-decoration: none; font-size: 13px;">Voltar ao Dashboard</a>
+    </nav>
     <div class="container">
-        <div class="header">
-            <div>
-                <h1 style="margin:0; font-size: 22px;">Gerador SQL Senior</h1>
-                <p style="margin:5px 0 0 0; font-size: 12px; color: #8b949e;">Modo Independente de Alta Performance</p>
-            </div>
-            <a href="/app/dashboard" class="back-link">← Voltar ao Sistema</a>
-        </div>
-
-        <div class="card">
-            <div class="card-header">CONSULTA SQL / CURSOR</div>
-            <textarea id="prompt" placeholder="Descreva a consulta desejada..."></textarea>
-            <div class="footer">
-                <button id="generate-btn">GERAR SQL E CURSOR</button>
+        <div class="error-toast" id="error-toast"></div>
+        <div class="input-section">
+            <div class="label"><i data-lucide="database"></i> Requisitar Consulta SQL Senior</div>
+            <textarea id="prompt" placeholder="Descreva a consulta, cursor ou relatório SQL desejado..."></textarea>
+            <div class="actions">
+                <button id="generate-btn" class="btn-generate">
+                    <i data-lucide="search"></i> GERAR SQL E CURSOR
+                </button>
             </div>
         </div>
-        <div id="error-display" class="error-msg"></div>
-
-        <div id="result"></div>
+        <div id="loading" class="loading-shimmer"></div>
+        <div id="results-grid" class="results-grid">
+            <div class="result-card">
+                <div class="result-header"><div class="label" style="margin:0;"><i data-lucide="book-open"></i> Análise Técnica</div></div>
+                <div class="result-body"><div id="explanation" class="explanation-text"></div></div>
+            </div>
+            <div class="result-card" style="border-color: var(--primary);">
+                <div class="result-header">
+                    <div class="label" style="margin:0;"><i data-lucide="code-2"></i> Script SQL / Cursor</div>
+                    <button class="btn-copy" onclick="copyCode()"><i data-lucide="copy"></i> Copiar Código</button>
+                </div>
+                <div class="result-body" style="background: #010409;"><pre id="code-content"></pre></div>
+            </div>
+        </div>
     </div>
-
     <script>
+        lucide.createIcons();
         const btn = document.getElementById('generate-btn');
         const promptInput = document.getElementById('prompt');
-        const resultDiv = document.getElementById('result');
-        const errorDiv = document.getElementById('error-display');
+        const resultsGrid = document.getElementById('results-grid');
+        const loading = document.getElementById('loading');
+        const errorToast = document.getElementById('error-toast');
+        const explanationDiv = document.getElementById('explanation');
+        const codePre = document.getElementById('code-content');
 
         btn.addEventListener('click', async () => {
             const text = promptInput.value.trim();
             if (!text) return;
-
             btn.disabled = true;
-            btn.innerText = "GERANDO...";
-            errorDiv.style.display = "none";
-            resultDiv.innerHTML = "";
-
+            loading.style.display = "block";
+            resultsGrid.style.display = "none";
+            errorToast.style.display = "none";
             try {
                 const response = await fetch('/api/gerar-sql', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: "[MODO SQL] " + text })
                 });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Erro do Servidor (${response.status})`);
-                }
-
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Erro'); }
                 const data = await response.json();
                 const raw = data.resultado;
-                
                 const getTag = (tag) => {
                     const s = raw.indexOf("##" + tag + "##");
                     if (s === -1) return "";
@@ -81,32 +105,22 @@
                     const e = raw.indexOf("##", after);
                     return (e === -1 ? raw.slice(after) : raw.slice(after, e)).trim();
                 };
-
-                const content = getTag("SQL_CURSOR");
-
-                if (!content) {
-                    resultDiv.innerHTML = `
-                        <div class="result-box">
-                            <div style="color: #8b949e; font-size: 11px; margin-bottom: 10px;">RESULTADO (SQL PURO)</div>
-                            <pre>${raw}</pre>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `
-                        <div class="result-box">
-                            <div style="color: #8b949e; font-size: 11px; margin-bottom: 10px;">SQL / CURSOR GERADO</div>
-                            <pre>${content}</pre>
-                        </div>
-                    `;
-                }
+                const explanation = getTag("EXPLICACOES");
+                const code = getTag("CONTEUDO");
+                if (!code && !explanation) { explanationDiv.innerText = "Resposta não estruturada."; codePre.innerText = raw; }
+                else { explanationDiv.innerText = explanation || "Sem análise."; codePre.innerText = code || "Nenhum SQL."; }
+                loading.style.display = "none";
+                resultsGrid.style.display = "grid";
             } catch (err) {
-                errorDiv.innerText = "Falha na Conexão: " + err.message;
-                errorDiv.style.display = "block";
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "GERAR SQL E CURSOR";
-            }
+                loading.style.display = "none";
+                errorToast.innerText = "Falha: " + err.message;
+                errorToast.style.display = "block";
+            } finally { btn.disabled = false; }
         });
+        function copyCode() {
+            navigator.clipboard.writeText(document.getElementById('code-content').innerText);
+            alert("Código copiado!");
+        }
     </script>
 </body>
 </html>
