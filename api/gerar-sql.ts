@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!GEMINI_API_KEY) throw new Error('Chave GEMINI_API_KEY não configurada.');
 
-    const modelToUse = 'gemini-2.0-flash';
+    const modelToUse = 'gemini-flash-latest';
     
     const systemPrompt = `Você é um Engenheiro de Software especialista em Senior Sistemas (LSP e SQL 2).
 Gere respostas técnicas precisas seguindo rigorosamente os delimitadores ## indicados no prompt do usuário.
