@@ -135,12 +135,20 @@
                 <div class="panel-header" style="color: var(--accent);">
                     <i data-lucide="map"></i> FASE 1: MAPA E ESTRUTURA
                 </div>
-                <div class="panel-body">
-                    <div style="font-weight: 700; color: white; margin-bottom: 8px; font-size: 12px;">📍 ROADMAP DE IMPLANTAÇÃO</div>
-                    <div id="mapa-content" style="white-space: pre-wrap; margin-bottom: 24px;"></div>
+                <div class="panel-body" style="display: flex; flex-direction: column; gap: 20px;">
+                    <div>
+                        <div style="font-weight: 700; color: white; margin-bottom: 8px; font-size: 11px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="list-checks" style="width: 14px; color: var(--accent);"></i> ROADMAP DE IMPLANTAÇÃO
+                        </div>
+                        <div id="mapa-content" style="white-space: pre-wrap; font-size: 13px;"></div>
+                    </div>
                     
-                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 8px; border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px;">🔍 CONTEXTO TÉCNICO UTILIZADO</div>
-                    <div id="context-used" style="white-space: pre-wrap; color: #a5d6ff; font-family: 'Fira Code', monospace; font-size: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;"></div>
+                    <div style="border-top: 1px solid var(--border); padding-top: 20px;">
+                        <div style="font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 11px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="database" style="width: 14px;"></i> CONTEXTO TÉCNICO DETALHADO
+                        </div>
+                        <div id="context-used" style="white-space: pre-wrap; color: #a5d6ff; font-family: 'Fira Code', monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); min-height: 150px;"></div>
+                    </div>
                 </div>
             </div>
 
@@ -239,7 +247,14 @@
                     body: JSON.stringify({ prompt: "[SUGERIR CONTEXTO] " + text })
                 });
                 const data = await response.json();
-                contextInput.value = data.resultado.trim();
+                const suggestion = data.resultado.trim();
+                contextInput.value = suggestion;
+                
+                // Mostrar imediatamente no painel lateral para o usuário ver grande
+                resultsArea.style.display = "grid";
+                document.getElementById('context-used').innerText = suggestion;
+                document.getElementById('mapa-content').innerText = "Aguardando geração da solução completa...";
+                lucide.createIcons();
             } catch (err) { console.error(err); }
             finally {
                 suggestCtxBtn.disabled = false;

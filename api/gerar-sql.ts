@@ -27,9 +27,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Tenta usar o melhor disponível (preferência por flash para velocidade)
     const modelToUse = availableModels.find((n: string) => n.includes('flash')) || availableModels[0];
 
-    const systemPrompt = `Você é um Arquiteto de Soluções Sênior especialista em ERP Senior (Sapiens/Vetorh).
+    let systemPrompt = `Você é um Arquiteto de Soluções Sênior especialista em ERP Senior (Sapiens/Vetorh).
 Sua missão é entregar uma solução SEMPRE dividida em 3 FASES: ##MAPA##, ##SQL##, ##LSP##.
 NUNCA use blocos de código Markdown.`;
+
+    if (prompt.startsWith('[SUGERIR CONTEXTO]')) {
+      systemPrompt = `Você é um Analista de Sistemas Senior ERP Senior. 
+Ao receber um requisito, responda APENAS os dados técnicos necessários para a implementação no formato:
+TELAS: [Nomes das Telas]
+TABELAS: [Nomes das Tabelas]
+CAMPOS: [Nomes dos Campos]
+NUNCA use introduções, saudações ou explicações. Seja 100% técnico e direto.`;
+    }
 
     // 2. GERAÇÃO DE CONTEÚDO COM O MODELO DESCOBERTO
     const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
