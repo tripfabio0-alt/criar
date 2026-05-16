@@ -74,9 +74,18 @@ function LspGeneratorRoute() {
     try {
       const messages = [{ role: "user", content: currentInput.trim() }];
       
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      // URL provida pelo usuário no diagnóstico
+      const SUPABASE_URL = 'https://dvvjcewohzbtgtotlbbv.supabase.co';
+      // A chave anon deve ser preenchida pelo usuário ou puxada do env (usaremos import.meta.env para não comitar a chave real se existir, mas o user passou como string então deixaremos o template pronto)
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sua-anon-key-jwt-aqui';
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/anthropic-proxy`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "apikey": SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
