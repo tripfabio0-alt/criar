@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { prompt } = req.body;
     const GEMINI_API_KEY = 'AIzaSyDpmRE7jQNmbBKn_FM9cyN8Yn4liWH56rA';
-    const modelToUse = 'gemini-1.5-flash'; 
+    const modelToUse = 'gemini-2.0-flash'; 
     
     // Lógica para sugestão de contexto técnico
     if (prompt.startsWith('[SUGERIR CONTEXTO]')) {
@@ -20,7 +20,7 @@ Ex: Tabelas: E120PED | Campos: CodCli | Telas: F120GPD.
 Requisito: ${prompt.replace('[SUGERIR CONTEXTO]', '')}`;
 
       try {
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -62,7 +62,7 @@ REGRAS CRÍTICAS:
 - Se o usuário usar [MODO SQL], foque a inteligência no SQL, mas mantenha o MAPA e a tag LSP vazia/com a mensagem padrão.`;
 
     try {
-      const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
+      const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
