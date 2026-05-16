@@ -75,8 +75,7 @@ function App() {
   const [mode,setMode]=useState("text");
   const fileRef=useRef<HTMLInputElement>(null);
 
-  console.log("LspGenerator Rendered - State:", { loading, hasResult: !!result, tab, mode });
-
+  // Sync ref with local state only on demand to prevent lag
   const handleFile=async(file: File)=>{
     if(!file||!file.type.startsWith("image/"))return;
     const base64=await fileToBase64(file);
@@ -86,27 +85,41 @@ function App() {
 
   const generate=async()=>{
     const currentInput = inputRef.current?.value || "";
-    if(!currentInput.trim()&&!image)return;
-    setLoading(true);setError("");setResult(null);
-    try{
+    if(!currentInput.trim()&&!image) {
+      setError("Por favor, descreva o que deseja ou adicione uma imagem.");
+      return;
+    }
+    
+    setLoading(true);
+    setError("");
+    setResult(null);
+    
+    try {
       let messages;
       if(mode==="image"&&image){
-        const content=[{type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},{type:"text",text:currentInput.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}];
+        const content=[
+          {type:"image",source:{type:"base64",media_type:image.mediaType,data:image.base64}},
+          {type:"text",text:currentInput.trim()||"Analise esta tela do Senior e gere a regra LSP adequada conforme o contexto visível."}
+        ];
         messages=[{role:"user",content}];
       }else{
         messages=[{role:"user",content:currentInput.trim()}];
       }
       
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dvvjcewohzbtgtotlbbv.supabase.co';
-      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_r4QQOZU3uyKdKw9sZxQ9UQ_2R0JFmdo';
+      // CRITICAL: Supabase URL and Key setup
+      // User must ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in .env
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://dvvjcewohzbtgtotlbbv.supabase.co';
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''; // Removed the Clerk key fallback
+      
+      if (!SUPABASE_ANON_KEY && !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        throw new Error("Configuração ausente: VITE_SUPABASE_ANON_KEY não encontrada.");
+      }
 
-      console.log("Iniciando geração...", { inputLength: currentInput.length, hasImage: !!image });
-
-      const res=await fetch(SUPABASE_URL + "/functions/v1/anthropic-proxy", {
+      const res=await fetch(`${SUPABASE_URL}/functions/v1/anthropic-proxy`, {
         method:"POST",
         headers:{
           "Content-Type":"application/json",
-          "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
           "apikey": SUPABASE_ANON_KEY,
         },
         body:JSON.stringify({
@@ -116,14 +129,26 @@ function App() {
           messages
         }),
       });
-      if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error("API " + res.status + ": " + (e?.error?.message||res.statusText));}
+
+      if(!res.ok){
+        const e=await res.json().catch(()=>({}));
+        throw new Error(`Erro ${res.status}: ${e?.error?.message || e?.message || res.statusText}`);
+      }
+      
       const data=await res.json();
       const raw=(data.content||[]).map((c: any)=>c.text||"").join("");
-      if(!raw)throw new Error("Resposta vazia.");
-      if(!raw.includes("##TITULO##"))throw new Error("Formato inesperado. Tente novamente.");
-      setResult(parseResponse(raw));setTab("script");
-    }catch(err: any){setError(err.message||"Erro desconhecido.");}
-    finally{setLoading(false);}
+      
+      if(!raw) throw new Error("A IA retornou uma resposta vazia.");
+      if(!raw.includes("##TITULO##")) throw new Error("Resposta fora do formato esperado. Tente novamente.");
+      
+      setResult(parseResponse(raw));
+      setTab("script");
+    } catch(err: any) {
+      console.error("Erro na geração:", err);
+      setError(err.message || "Ocorreu um erro ao processar sua solicitação.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const copy=()=>{if(!result?.script)return;navigator.clipboard.writeText(result.script);setCopied(true);setTimeout(()=>setCopied(false),2000);};
@@ -192,13 +217,15 @@ function App() {
 
           <textarea
             ref={inputRef}
+            defaultValue=""
+            onChange={() => {}} // Dummy onChange to satisfy React reconciliation
             spellCheck={false}
             data-gramm="false"
             data-gramm_editor="false"
             data-enable-grammarly="false"
             onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))generate();}}
             placeholder={mode==="image"?"Ex: Quero validar o campo Qtde antes de salvar, bloqueando se for zero...":"Ex: Quero uma regra que ao apontar uma OP verifique se o operador tem permissão e registre um log..."}
-            style={{width:"100%",minHeight:120,background:"transparent",border:"none",borderTop:"1px solid #1e293b",outline:"none",padding:16,color:"#cbd5e1",fontSize:13,fontFamily:"inherit",resize:"none",lineHeight:1.6,boxSizing:"border-box"}}
+            style={{width:"100%",minHeight:140,background:"transparent",border:"none",borderTop:"1px solid #1e293b",outline:"none",padding:16,color:"#cbd5e1",fontSize:13,fontFamily:"inherit",resize:"none",lineHeight:1.6,boxSizing:"border-box"}}
           />
 
           <div style={{padding:"10px 16px",borderTop:"1px solid #1e293b",display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap"}}>
