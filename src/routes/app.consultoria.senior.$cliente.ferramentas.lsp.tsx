@@ -132,6 +132,10 @@ function LspGeneratorRoute() {
         <textarea
           ref={inputRef}
           rows={10}
+          spellCheck={false}
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
           placeholder="Digite sua necessidade..."
           style={{ width: "100%", padding: 16, fontSize: 14, fontFamily: "monospace", border: "1px solid #333", borderRadius: 8, background: "#111", color: "#fff" }}
         />
