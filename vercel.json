@@ -1,20 +1,22 @@
 {
-  "redirects": [
+  "cleanUrls": true,
+  "trailingSlash": true,
+  "rewrites": [
     {
-      "source": "/app/:path*/ferramentas/lsp",
-      "destination": "/gerador/",
-      "permanent": false
+      "source": "/gerador",
+      "destination": "/gerador/index.html"
     },
     {
-      "source": "/app/:path*/ferramentas/sql",
-      "destination": "/gerador/sql.html",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
+      "source": "/gerador/sql",
+      "destination": "/gerador/sql.html"
+    },
     {
       "source": "/gerador/(.*)",
       "destination": "/gerador/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

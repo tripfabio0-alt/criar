@@ -33,8 +33,8 @@ export const Sidebar: React.FC = memo(() => {
   const handleClientClick = useCallback(
     (clientSlug: string) => {
       setActiveClientBySlug(clientSlug);
-      // Redirecionamento forçado para a pasta independente (Bypass React)
-      const toolUrl = expandedTool === 'senior-sql' ? '/gerador/sql.html' : '/gerador/';
+      // Redirecionamento forçado com prioridade de servidor
+      const toolUrl = expandedTool === 'senior-sql' ? '/gerador/sql/' : '/gerador/';
       window.location.href = toolUrl;
     },
     [setActiveClientBySlug, expandedTool]
